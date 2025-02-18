@@ -3,14 +3,35 @@
 import { useEffect, useState } from "react";
 import { getSpendingData } from "@/app/actions/allocations";
 
-export default function SpendingAllocation({ userId, year, month }) {
-    const [allocation, setAllocation] = useState({ savings: 0, needs: 0, wants: 0 });
-    const [income, setIncome] = useState(0);
-    const [loading, setLoading] = useState(true);
+interface Allocation {
+    savings: number;
+    needs: number;
+    wants: number;
+}
+
+interface SpendingData {
+    allocation?: {
+        savings_percentage: number;
+        needs_percentage: number;
+        wants_percentage: number;
+    };
+    income: number;
+}
+
+interface SpendingAllocationProps {
+    userId: string;
+    year: number;
+    month: number;
+}
+
+export default function SpendingAllocation({ userId, year, month }: SpendingAllocationProps) {
+    const [allocation, setAllocation] = useState<Allocation>({ savings: 0, needs: 0, wants: 0 });
+    const [income, setIncome] = useState<number>(0);
+    const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
         async function fetchData() {
-            const data = await getSpendingData(userId, year, month);
+            const data: SpendingData = await getSpendingData(userId, year, month);
             if (data.allocation) {
                 setAllocation({
                     savings: data.allocation.savings_percentage,
@@ -36,10 +57,10 @@ export default function SpendingAllocation({ userId, year, month }) {
                     { title: "Wants", key: "wants", color: "bg-yellow-100 text-yellow-800" },
                 ].map((item) => (
                     <div key={item.key} className={`p-6 rounded-2xl shadow-md ${item.color} font-semibold text-xl`}>
-                        <p>{item.title}: {allocation[item.key]}%</p>
+                        <p>{item.title}: {allocation[item.key as keyof Allocation]}%</p>
                         {income > 0 && (
                             <p className="text-lg font-medium mt-1">
-                                ${((allocation[item.key] / 100) * income).toFixed(2)}
+                                ${((allocation[item.key as keyof Allocation] / 100) * income).toFixed(2)}
                             </p>
                         )}
                     </div>

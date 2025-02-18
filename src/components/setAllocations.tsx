@@ -1,25 +1,37 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, ChangeEvent } from "react";
 import { getSpendingAllocation, updateSpendingAllocation } from "@/app/actions/settings_allocations";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 
 const MySwal = withReactContent(Swal);
 
-export default function SettingsAllocation({ userId, year, month }) {
-    const [allocation, setAllocation] = useState({ savings: 0, needs: 0, wants: 0 });
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
+interface Allocation {
+    savings: number;
+    needs: number;
+    wants: number;
+}
+
+interface SettingsAllocationProps {
+    userId: string;
+    year: number;
+    month: number;
+}
+
+export default function SettingsAllocation({ userId, year, month }: SettingsAllocationProps) {
+    const [allocation, setAllocation] = useState<Allocation>({ savings: 0, needs: 0, wants: 0 });
+    const [loading, setLoading] = useState<boolean>(true);
+    const [saving, setSaving] = useState<boolean>(false);
 
     useEffect(() => {
         async function fetchAllocation() {
-            const data = await getSpendingAllocation(userId, year, month);
+            const data: Allocation | null = await getSpendingAllocation(userId, year, month);
             if (data) {
                 setAllocation({
-                    savings: data.savings_percentage,
-                    needs: data.needs_percentage,
-                    wants: data.wants_percentage,
+                    savings: data.savings,
+                    needs: data.needs,
+                    wants: data.wants,
                 });
             }
             setLoading(false);
@@ -27,7 +39,7 @@ export default function SettingsAllocation({ userId, year, month }) {
         fetchAllocation();
     }, [userId, year, month]);
 
-    const showToast = (message, type) => {
+    const showToast = (message: string, type: "success" | "error" | "warning") => {
         MySwal.fire({
             toast: true,
             position: "top-end",
@@ -39,7 +51,7 @@ export default function SettingsAllocation({ userId, year, month }) {
         });
     };
 
-    const handleChange = (e) => {
+    const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         const newValue = parseFloat(value) || 0;
 
@@ -73,7 +85,7 @@ export default function SettingsAllocation({ userId, year, month }) {
             allocation.wants
         );
 
-        if (response.error) {
+        if (response?.error) {
             showToast("Failed to update allocation", "error");
         } else {
             showToast("Allocation updated successfully!", "success");
@@ -99,7 +111,7 @@ export default function SettingsAllocation({ userId, year, month }) {
                         <input
                             type="number"
                             name={item.key}
-                            value={allocation[item.key]}
+                            value={allocation[item.key as keyof Allocation]}
                             onChange={handleChange}
                             min="0"
                             max="100"

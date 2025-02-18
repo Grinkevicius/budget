@@ -1,27 +1,33 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, ChangeEvent } from "react";
 import { getUserIncome, updateUserIncome } from "@/app/actions/income_actions";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 
 const MySwal = withReactContent(Swal);
 
-export default function IncomeSetter({ userId, year, month }) {
-    const [income, setIncome] = useState("");
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
+interface IncomeSetterProps {
+    userId: string;
+    year: number;
+    month: number;
+}
+
+export default function IncomeSetter({ userId, year, month }: IncomeSetterProps) {
+    const [income, setIncome] = useState<string | number>("");
+    const [loading, setLoading] = useState<boolean>(true);
+    const [saving, setSaving] = useState<boolean>(false);
 
     useEffect(() => {
         async function fetchIncome() {
-            const incomeAmount = await getUserIncome(userId, year, month);
+            const incomeAmount: number | null = await getUserIncome(userId, year, month);
             if (incomeAmount !== null) setIncome(incomeAmount);
             setLoading(false);
         }
         fetchIncome();
     }, [userId, year, month]);
 
-    const showToast = (message, type) => {
+    const showToast = (message: string, type: "success" | "error" | "warning") => {
         MySwal.fire({
             toast: true,
             position: "top-end",
@@ -33,23 +39,23 @@ export default function IncomeSetter({ userId, year, month }) {
         });
     };
 
-    const handleChange = (e) => {
+    const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         const value = parseFloat(e.target.value);
         if (value < 0) {
             showToast("Income cannot be negative!", "warning");
             return;
         }
-        setIncome(value || "");
+        setIncome(isNaN(value) ? "" : value);
     };
 
     const handleSave = async () => {
-        if (income === "" || isNaN(income) || income < 0) {
+        if (income === "" || isNaN(Number(income)) || Number(income) < 0) {
             showToast("Please enter a valid income!", "error");
             return;
         }
 
         setSaving(true);
-        const response = await updateUserIncome(userId, year, month, income);
+        const response = await updateUserIncome(userId, year, month, Number(income));
 
         if (response.error) {
             showToast("Failed to update income!", "error");
