@@ -10,7 +10,7 @@ export default function BudgetCards() {
         <Header />
         <div className="p-6">
             {/* First Row */}
-            <SpendingAllocation userId={1} year={2025} month={2} />
+            <SpendingAllocation userId={"1"} year={2025} month={2} />
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
                 {["Column 1", "Column 2", "Column 3"].map((item, index) => (
