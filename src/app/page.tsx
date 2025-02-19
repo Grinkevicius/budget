@@ -19,7 +19,7 @@ export default function BudgetCards() {
 
     useEffect(() => {
         if (status === "unauthenticated") {
-            router.push("/auth/signin");
+            setTimeout(() => router.push("/auth/signin"), 0);
         }
     }, [status, router]);
 
@@ -65,9 +65,9 @@ export default function BudgetCards() {
 
                 {/* ✅ Transactions Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-                    <TransactionColumn userId={session.user.id} year={2025} month={2} category="Savings" key={`savings-${reload}`} />
                     <TransactionColumn userId={session.user.id} year={2025} month={2} category="Needs" key={`needs-${reload}`} />
                     <TransactionColumn userId={session.user.id} year={2025} month={2} category="Wants" key={`wants-${reload}`} />
+                    <TransactionColumn userId={session.user.id} year={2025} month={2} category="Savings" key={`savings-${reload}`} />
                 </div>
             </div>
         </>
