@@ -1,9 +1,20 @@
-import NextAuth from "next-auth";
+import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { pool } from "@/lib/db";
+import type { JWT } from "next-auth/jwt";
+import type { Session, User } from "next-auth";
+import type { AdapterUser } from "next-auth/adapters";
 
-export const authOptions = {
+// ✅ Define Custom User Type
+interface CustomUser extends User {
+    id: string;
+    name: string;
+    email: string;
+}
+
+// ✅ NextAuth Configuration
+const authOptions: NextAuthOptions = {
     providers: [
         CredentialsProvider({
             name: "Credentials",
@@ -11,15 +22,14 @@ export const authOptions = {
                 email: { label: "Email", type: "text" },
                 password: { label: "Password", type: "password" },
             },
-            async authorize(credentials) {
+            async authorize(credentials): Promise<CustomUser | null> {
                 if (!credentials?.email || !credentials?.password) {
                     throw new Error("Missing email or password");
                 }
 
                 try {
-                    // Fetch user from DB
                     const userCheck = await pool.query(
-                        `SELECT * FROM "user".users WHERE email = $1`,
+                        `SELECT id, name, email, password FROM "user".users WHERE email = $1`,
                         [credentials.email]
                     );
 
@@ -29,13 +39,16 @@ export const authOptions = {
                         throw new Error("User not found");
                     }
 
-                    // Compare hashed password
                     const isValid = await bcrypt.compare(credentials.password, user.password);
                     if (!isValid) {
                         throw new Error("Invalid password");
                     }
 
-                    return { id: user.id, name: user.name, email: user.email };
+                    return {
+                        id: user.id.toString(),
+                        name: user.name ?? "Unknown",
+                        email: user.email,
+                    };
                 } catch (error) {
                     console.error("🚨 Authorization error:", error);
                     throw new Error("Internal server error");
@@ -44,20 +57,36 @@ export const authOptions = {
         }),
     ],
     callbacks: {
-        async session({ session, token }) {
-            session.user.id = token.id;
+        async session({ session, token }: { session: Session; token: JWT }) {
+            if (session.user) {
+                session.user.id = token.sub as string;
+            }
             return session;
         },
-        async jwt({ token, user }) {
-            if (user) token.id = user.id;
+
+        async jwt({
+                      token,
+                      user,
+                  }: {
+            token: JWT;
+            user?: User | AdapterUser;
+        }): Promise<JWT> {
+            if (user) {
+                const customUser = user as CustomUser;
+
+                token.sub = customUser.id ?? user.id?.toString() ?? token.sub;
+                token.name = customUser.name ?? user.name ?? "Unknown";
+                token.email = customUser.email ?? user.email ?? "";
+            }
             return token;
         },
     },
     session: {
         strategy: "jwt",
     },
-    secret: process.env.NEXTAUTH_SECRET,
+    secret: process.env.NEXTAUTH_SECRET as string,
 };
 
 const handler = NextAuth(authOptions);
 export { handler as GET, handler as POST };
+export default handler;
