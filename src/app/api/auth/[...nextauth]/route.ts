@@ -1,21 +1,22 @@
-
 import NextAuth, { NextAuthOptions, User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { pool } from "@/lib/db";
 import type { JWT } from "next-auth/jwt";
-import type { Session  } from "next-auth";
+import type { Session } from "next-auth";
 import type { AdapterUser } from "next-auth/adapters";
 
-
-// Define a CustomUser if needed
+// 1. Define a CustomUser interface (optional).
+//    - If you strictly want your user to have id, name, email as strings.
 interface CustomUser extends User {
     id: string;
     name: string;
     email: string;
 }
 
-export const authOptions: NextAuthOptions = {
+// 2. Keep authOptions as a LOCAL constant. Do NOT export it.
+//    - Next.js routes only allow GET, POST, etc. exports.
+const authOptions: NextAuthOptions = {
     providers: [
         CredentialsProvider({
             name: "Credentials",
@@ -29,17 +30,18 @@ export const authOptions: NextAuthOptions = {
                 }
 
                 try {
+                    // Fetch user from DB
                     const userCheck = await pool.query(
                         `SELECT id, name, email, password FROM "user".users WHERE email = $1`,
                         [credentials.email]
                     );
-
                     const user = userCheck.rows[0];
 
                     if (!user) {
                         throw new Error("User not found");
                     }
 
+                    // Compare hashed password
                     const isValid = await bcrypt.compare(credentials.password, user.password);
                     if (!isValid) {
                         throw new Error("Invalid password");
@@ -58,22 +60,27 @@ export const authOptions: NextAuthOptions = {
         }),
     ],
     callbacks: {
+        // 3. session callback sets session.user.id from token.sub
         async session({ session, token }: { session: Session; token: JWT }) {
             if (session.user) {
                 session.user.id = token.sub as string;
             }
             return session;
         },
+
+        // 4. jwt callback sets token.sub, token.name, token.email from the user
         async jwt({
                       token,
                       user,
                   }: {
             token: JWT;
-            user?: User | AdapterUser;
+            user?: User | AdapterUser; // NextAuth might pass default 'User' or 'AdapterUser'
         }): Promise<JWT> {
             if (user) {
+                // Cast to your custom user shape if you want strict fields
                 const customUser = user as CustomUser;
 
+                // Fallback safely for name, email if NextAuth's user is partial
                 token.sub = customUser.id ?? user.id?.toString() ?? token.sub;
                 token.name = customUser.name ?? user.name ?? "Unknown";
                 token.email = customUser.email ?? user.email ?? "";
@@ -81,9 +88,12 @@ export const authOptions: NextAuthOptions = {
             return token;
         },
     },
-    session: { strategy: "jwt" },
+    session: {
+        strategy: "jwt",
+    },
     secret: process.env.NEXTAUTH_SECRET,
 };
 
+// 5. Export GET & POST from NextAuth, NOT authOptions
 const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };
+export const { GET, POST } = handler;
