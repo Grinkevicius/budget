@@ -14,7 +14,7 @@ interface CustomUser extends User {
 }
 
 // ✅ NextAuth Configuration
-const authOptions: NextAuthOptions = {
+export const authOptions: NextAuthOptions = {
     providers: [
         CredentialsProvider({
             name: "Credentials",
@@ -87,6 +87,7 @@ const authOptions: NextAuthOptions = {
     secret: process.env.NEXTAUTH_SECRET as string,
 };
 
+// ✅ Correctly Export NextAuth for Next.js App Router
 const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };
-export default handler;
+export const GET = handler;
+export const POST = handler;
