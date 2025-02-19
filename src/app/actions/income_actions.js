@@ -11,7 +11,7 @@ export async function getSpendingAllocation(userId, year, month) {
     try {
         const result = await pool.query(`
             SELECT savings_percentage, needs_percentage, wants_percentage 
-            FROM settings.spending_allocation 
+            FROM spending_allocation 
             WHERE user_id = $1 AND year = $2 AND month = $3
         `, [userId, year, month]);
 
@@ -25,7 +25,7 @@ export async function getSpendingAllocation(userId, year, month) {
 export async function updateSpendingAllocation(userId, year, month, savings, needs, wants) {
     try {
         await pool.query(`
-            INSERT INTO settings.spending_allocation (user_id, year, month, savings_percentage, needs_percentage, wants_percentage)
+            INSERT INTO spending_allocation (user_id, year, month, savings_percentage, needs_percentage, wants_percentage)
             VALUES ($1, $2, $3, $4, $5, $6)
             ON CONFLICT (user_id, year, month)
             DO UPDATE SET savings_percentage = $4, needs_percentage = $5, wants_percentage = $6
@@ -42,7 +42,7 @@ export async function getUserIncome(userId, year, month) {
     try {
         const result = await pool.query(`
             SELECT income_amount 
-            FROM settings.income 
+            FROM income 
             WHERE user_id = $1 AND year = $2 AND month = $3
         `, [userId, year, month]);
 
@@ -56,7 +56,7 @@ export async function getUserIncome(userId, year, month) {
 export async function updateUserIncome(userId, year, month, incomeAmount) {
     try {
         await pool.query(`
-            INSERT INTO settings.income (user_id, year, month, income_amount)
+            INSERT INTO income (user_id, year, month, income_amount)
             VALUES ($1, $2, $3, $4)
             ON CONFLICT (user_id, year, month)
             DO UPDATE SET income_amount = $4

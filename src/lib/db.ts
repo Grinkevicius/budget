@@ -6,7 +6,7 @@ if (!connectionString) {
     throw new Error('Please add your DATABASE_URL to .env.local');
 }
 
-const pool = new Pool({
+export const pool = new Pool({
     connectionString,
 });
 

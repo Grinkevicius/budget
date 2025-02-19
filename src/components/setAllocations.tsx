@@ -26,18 +26,26 @@ export default function SettingsAllocation({ userId, year, month }: SettingsAllo
 
     useEffect(() => {
         async function fetchAllocation() {
-            const data: Allocation | null = await getSpendingAllocation(userId, year, month);
-            if (data) {
-                setAllocation({
-                    savings: data.savings,
-                    needs: data.needs,
-                    wants: data.wants,
-                });
+            setLoading(true);
+            try {
+                const data: Allocation | null = await getSpendingAllocation(userId, year, month);
+                console.log("✅ Allocation Data Fetched:", data);
+
+                if (data) {
+                    setAllocation(data);
+                } else {
+                    showToast("No allocation data found. Set your allocation!", "warning");
+                }
+            } catch (error) {
+                console.error("❌ Error fetching allocation:", error);
+                showToast("Error loading allocation data", "error");
             }
             setLoading(false);
         }
         fetchAllocation();
     }, [userId, year, month]);
+
+
 
     const showToast = (message: string, type: "success" | "error" | "warning") => {
         MySwal.fire({
