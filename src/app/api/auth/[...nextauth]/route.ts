@@ -1,4 +1,4 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
+import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { pool } from "@/lib/db";
@@ -13,8 +13,7 @@ interface CustomUser extends User {
     email: string;
 }
 
-// ✅ NextAuth Configuration
-export const authOptions: NextAuthOptions = {
+const handler = NextAuth({
     providers: [
         CredentialsProvider({
             name: "Credentials",
@@ -85,9 +84,7 @@ export const authOptions: NextAuthOptions = {
         strategy: "jwt",
     },
     secret: process.env.NEXTAUTH_SECRET as string,
-};
+});
 
-// ✅ Correctly Export NextAuth for Next.js App Router
-const handler = NextAuth(authOptions);
 export const GET = handler;
 export const POST = handler;
