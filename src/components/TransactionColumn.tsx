@@ -28,7 +28,7 @@ interface TransactionColumnProps {
     year: number;
     month: number;
     category: string;
-    refreshCategoryTracker: () => void;
+    refreshCategoryTrackerAction: () => void;
     newTransaction?: Transaction;
 }
 export default function TransactionColumn({
@@ -36,7 +36,7 @@ export default function TransactionColumn({
   year,
   month,
   category,
-  refreshCategoryTracker,
+  refreshCategoryTrackerAction,
   newTransaction,
 }: TransactionColumnProps) {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -81,7 +81,7 @@ export default function TransactionColumn({
                     t.referencecode === updatedTransaction.referencecode ? updatedTransaction : t
                 )
             );
-            refreshCategoryTracker();
+            refreshCategoryTrackerAction();
         }
         setSelectedTransaction(null);
     };
@@ -92,7 +92,7 @@ export default function TransactionColumn({
             setTransactions((prev) =>
                 prev.filter((t) => t.referencecode !== referencecode)
             );
-            refreshCategoryTracker();
+            refreshCategoryTrackerAction();
         } catch (error) {
             console.error("Error deleting transaction:", error);
         }
@@ -148,7 +148,7 @@ export default function TransactionColumn({
             {selectedTransaction && (
                 <EditTransaction
                     transaction={selectedTransaction}
-                    onClose={handleEditClose}
+                    onCloseAction={handleEditClose}
                 />
             )}
         </>

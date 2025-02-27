@@ -25,11 +25,11 @@ interface Transaction {
 
 interface EditTransactionProps {
     transaction: Transaction;
-    onClose: (updatedTransaction?: Transaction) => void;
+    onCloseAction: (updatedTransaction?: Transaction) => void;
     refreshTransactions?: () => void;
 }
 
-export function EditTransaction({ transaction, onClose, refreshTransactions }: EditTransactionProps) {
+export function EditTransaction({ transaction, onCloseAction, refreshTransactions }: EditTransactionProps) {
     const [description, setDescription] = useState(transaction.description);
     const [amount, setAmount] = useState(transaction.amount);
     const initialDate = new Date(transaction.transaction_date).toISOString().split("T")[0];
@@ -49,14 +49,14 @@ export function EditTransaction({ transaction, onClose, refreshTransactions }: E
             if (refreshTransactions) {
                 await refreshTransactions();
             }
-            onClose(result);
+            onCloseAction(result);
         } catch (error) {
             console.error("Error updating transaction:", error);
         }
     };
 
     return (
-        <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+        <Dialog open={true} onOpenChange={(open) => !open && onCloseAction()}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>Edit Transaction</DialogTitle>

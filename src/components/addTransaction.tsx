@@ -18,14 +18,14 @@ interface TransactionInputProps {
     userId: string;
     budgetCode: string;
     categories: { referencecode: string; type: string }[];
-    onClose: (addedTransaction?: never) => void;
+    onCloseAction: (addedTransaction?: never) => void;
 }
 
 export function AddTransactionDialog({
     userId,
     budgetCode,
     categories,
-    onClose,
+    onCloseAction,
 }: TransactionInputProps) {
     const [description, setDescription] = useState("");
     const [amount, setAmount] = useState("");
@@ -47,7 +47,7 @@ export function AddTransactionDialog({
                 amount: Number(amount),
                 transaction_date: date,
             });
-            onClose(newTransaction);
+            onCloseAction(newTransaction);
         } catch (error) {
             console.error("Error adding transaction:", error);
         } finally {
@@ -56,7 +56,7 @@ export function AddTransactionDialog({
     };
 
     return (
-        <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+        <Dialog open={true} onOpenChange={(open) => !open && onCloseAction()}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>Add Transaction</DialogTitle>

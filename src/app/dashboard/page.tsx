@@ -77,7 +77,7 @@ export default function BudgetDashboard() {
         setBudgetCode(budgetCode ? budgetCode.referencecode : "");
     }
 
-    const refreshCategoryTracker = (categoryCode: string) => {
+    const refreshCategoryTrackerAction = (categoryCode: string) => {
         setTrackerReloads((prev) => ({
             ...prev,
             [categoryCode]: !prev[categoryCode],
@@ -133,7 +133,7 @@ export default function BudgetDashboard() {
                                         year={selectedYear}
                                         month={selectedMonth}
                                         category={cat.referencecode}
-                                        refreshCategoryTracker={() => refreshCategoryTracker(cat.referencecode)}
+                                        refreshCategoryTrackerAction={() => refreshCategoryTrackerAction(cat.referencecode)}
                                         newTransaction={
                                             newTransaction && newTransaction.category_code === cat.referencecode
                                                 ? newTransaction
@@ -151,12 +151,12 @@ export default function BudgetDashboard() {
                             userId={session.user.id}
                             budgetCode={budgetCode!}
                             categories={categories}
-                            onClose={(addedTransaction? : Transaction) => {
+                            onCloseAction={(addedTransaction? : Transaction) => {
                                 setOpen(false);
                                 if (addedTransaction) {
                                     console.log("New transaction added:", addedTransaction);
                                     setNewTransaction(addedTransaction);
-                                    refreshCategoryTracker(addedTransaction.category_code);
+                                    refreshCategoryTrackerAction(addedTransaction.category_code);
                                     setTimeout(() => setNewTransaction(null), 10);
                                 }
                             }}
