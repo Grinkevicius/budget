@@ -81,7 +81,9 @@ export default function IncomeSetter({ userId }: IncomeSetterProps) {
         );
 
     return (
+
         <div className="p-6 rounded-2xl shadow-lg bg-white">
+            <div> User id - {userId}</div>
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Set Monthly Income</h2>
             <div className="flex flex-col md:flex-row items-center gap-6">
                 <div className="relative w-full md:w-1/2">

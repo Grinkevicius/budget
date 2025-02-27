@@ -11,7 +11,15 @@ AS $BODY$
 
     /*
 
-     SELECT * FROM public.createbudget(1000000000, 2025, 3)
+     TRUNCATE budgets
+     TRUNCATE income
+     TRUNCATE spending_allocation
+     SELECT * FROM public.createbudget(1000000003, 2025, 3)
+
+     SELECT b.*, i.* FROM budgets b
+        LEFT OUTER JOIN income i ON b.user_id = i.user_id
+     WHERE b.referencecode = 'BUD202502271841521A'
+     AND b.year = i.year AND b.month = i.month
 
      */
 
