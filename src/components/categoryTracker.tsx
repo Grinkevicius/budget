@@ -1,0 +1,129 @@
+import { useEffect, useState } from "react";
+import { getCategoryData } from "@/app/actions/getCategoryData";
+import { Doughnut } from "react-chartjs-2";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import { Skeleton } from "@/components/ui/skeleton";
+
+ChartJS.register(ArcElement, Tooltip, Legend);
+
+interface CategoryData {
+    category_code: string;
+    category_type: string;
+    allocated_percentage: number;
+    income: number;
+    max_spend: number;
+    spent_amount: number;
+}
+
+interface Props {
+    category: string;
+    userId: string;
+    year: number;
+    month: number;
+    color: string;
+    reload?: boolean;
+}
+
+export default function CategoryTrackerComponent({
+                                                     category,
+                                                     userId,
+                                                     year,
+                                                     month,
+                                                     color,
+                                                     reload,
+                                                 }: Props) {
+    const [data, setData] = useState<CategoryData | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [initialLoading, setInitialLoading] = useState(true);
+    const [percentSpent, setPercentSpent] = useState(0);
+
+    useEffect(() => {
+        async function fetchData() {
+            if (initialLoading) {
+                setLoading(true);
+            }
+            const result: CategoryData | null = await getCategoryData(
+                category,
+                userId,
+                year,
+                month
+            );
+            setData(result);
+            if (result) {
+                const newPercent =
+                    result.max_spend > 0
+                        ? (result.spent_amount / result.max_spend) * 100
+                        : 0;
+                setPercentSpent(newPercent);
+            }
+            if (initialLoading) {
+                setLoading(false);
+                setInitialLoading(false);
+            }
+        }
+        fetchData();
+    }, [category, userId, year, month, reload]);
+
+    if (initialLoading && loading) {
+        return (
+            <div
+                style={{ backgroundColor: color }}
+                className="p-3 rounded-2xl shadow-md border flex items-center"
+            >
+                <Skeleton className="w-[3.5rem] h-[3.5rem] rounded-full mr-3" />
+                <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-3 w-1/3" />
+                </div>
+            </div>
+        );
+    }
+
+    if (!data) return <div>No data found.</div>;
+
+    const chartData = {
+        datasets: [
+            {
+                data: [
+                    data.spent_amount,
+                    Math.max(data.max_spend - data.spent_amount, 0),
+                ],
+                backgroundColor: ["#ef4444", "#22c55e"],
+                hoverBackgroundColor: ["#dc2626", "#16a34a"],
+                borderWidth: 0,
+            },
+        ],
+    };
+
+    const chartOptions = {
+        responsive: true,
+        plugins: {
+            legend: { display: false },
+        },
+        cutout: "75%",
+    };
+
+    return (
+        <div
+            style={{ backgroundColor: color }}
+            className="p-3 rounded-2xl shadow-md border flex items-center text-xl"
+        >
+            <div className="relative w-[3.5rem] h-[3.5rem] flex justify-center items-center mr-3">
+                <Doughnut data={chartData} options={chartOptions} />
+                <div className="absolute inset-0 flex items-center justify-center text-black text-xs">
+                    {percentSpent.toFixed(0)}%
+                </div>
+            </div>
+            <div>
+                <p>
+                    {data.category_type}: {data.allocated_percentage}%
+                </p>
+                <div className="text-sm mt-1">
+                    <p>
+                        ${Number(data.spent_amount)} / ${Number(data.max_spend)}
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+}

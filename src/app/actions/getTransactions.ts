@@ -10,7 +10,7 @@ const pool = new Pool({
 export async function getTransactions(userId: string, year: number, month: number) {
     try {
         const result = await pool.query(
-            `SELECT t.referencecode, t.description, t.amount, t.transaction_date, c.type
+            `SELECT t.referencecode, t.description, t.amount, t.transaction_date, c.type, t.category_code, t.is_recurring
              FROM transactions t
                       JOIN categories c ON t.category_code = c.referencecode
                       JOIN budgets b ON t.budget_code = b.referencecode
@@ -21,11 +21,8 @@ export async function getTransactions(userId: string, year: number, month: numbe
             [userId, year, month]
         );
 
-        console.log(result);
-
         return result.rows;
-    } catch (error) {
-        console.error("🚨 Database Error:", error);
+    } catch {
         return [];
     }
 }

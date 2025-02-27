@@ -7,14 +7,10 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false },
 });
 
-export async function getBudgetForMonth(userId: string, year: number, month: number) {
+export async function createBudget(userId: string | number, year: number, month: number) {
     try {
         const result = await pool.query(
-            `SELECT referencecode
-             FROM budgets
-             WHERE user_id = $1 AND year = $2 AND month = $3
-             ORDER BY created_at DESC 
-             LIMIT 1`,
+            `SELECT * FROM public.createbudget($1, $2, $3)`,
             [userId, year, month]
         );
 

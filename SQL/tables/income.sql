@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS income
             || to_char(NOW(), 'YYYYMMDDHH24MISS')
             || upper(substring(gen_random_uuid()::text, 1, 2))
         ),
-    user_id integer,
+    user_id BIGINT,
     year integer NOT NULL,
     month integer NOT NULL,
     income_amount numeric(10,2) NOT NULL,

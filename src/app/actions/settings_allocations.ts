@@ -22,42 +22,35 @@ interface Allocation {
 
 export async function getSpendingAllocation(
     userId: string,
-    year: number,
-    month: number
 ): Promise<Allocation | null> {
     try {
         const result = await pool.query(
             `
-                SELECT savings_percentage, needs_percentage, wants_percentage
-                FROM spending_allocation
-                WHERE user_id = $1 AND year = $2 AND month = $3
+                SELECT default_savings_percentage, default_needs_percentage, default_wants_percentage
+                FROM "user".settings
+                WHERE user_id = $1
             `,
-            [userId, year, month]
+            [userId]
         );
-
-        console.log("✅ Database Response:", result.rows);
 
         if (result.rows.length > 0) {
             const data = result.rows[0];
             return {
-                savings: data.savings_percentage ?? 0,  // Convert DB fields to expected names
-                needs: data.needs_percentage ?? 0,
-                wants: data.wants_percentage ?? 0,
+                savings: data.default_savings_percentage ?? 0,
+                needs: data.default_needs_percentage ?? 0,
+                wants: data.default_wants_percentage ?? 0,
             };
+
         } else {
-            console.warn("⚠️ No data found for this user and date.");
             return null;
         }
-    } catch (error) {
-        console.error("🚨 Database Error:", error);
+    } catch {
         return null;
     }
 }
 
 export async function updateSpendingAllocation(
     userId: string,
-    year: number,
-    month: number,
     savings: number,
     needs: number,
     wants: number
@@ -65,17 +58,16 @@ export async function updateSpendingAllocation(
     try {
         await pool.query(
             `
-            INSERT INTO spending_allocation (user_id, year, month, savings_percentage, needs_percentage, wants_percentage)
-            VALUES ($1, $2, $3, $4, $5, $6)
-            ON CONFLICT (user_id, year, month)
-            DO UPDATE SET savings_percentage = $4, needs_percentage = $5, wants_percentage = $6
+            INSERT INTO "user".settings (user_id, default_savings_percentage, default_needs_percentage, default_wants_percentage, updated_at)
+            VALUES ($1, $2, $3, $4, $5)
+            ON CONFLICT (user_id)
+            DO UPDATE SET default_savings_percentage = $2, default_needs_percentage = $3, default_wants_percentage = $4
             `,
-            [userId, year, month, savings, needs, wants]
+            [userId, savings, needs, wants, new Date()]
         );
 
         return { message: "Allocation updated successfully!" };
-    } catch (error) {
-        console.error("🚨 Database Update Error:", error);
+    } catch {
         return { error: "Failed to update allocation." };
     }
 }

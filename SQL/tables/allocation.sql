@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS spending_allocation
         || to_char(NOW(), 'YYYYMMDDHH24MISS')
         || upper(substring(gen_random_uuid()::text, 1, 2))
     ),
-    user_id             INTEGER,
+    user_id             BIGINT,
     year                INTEGER NOT NULL,
     month               INTEGER NOT NULL,
     savings_percentage  INTEGER NOT NULL,

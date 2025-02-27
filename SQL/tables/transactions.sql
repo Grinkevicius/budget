@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS transactions
             || upper(substring(gen_random_uuid()::text, 1, 2))
         ),
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now(),
-    user_id INTEGER,
+    user_id BIGINT,
     budget_code TEXT NOT NULL,  -- ✅ Link to budgets
     category_code TEXT NOT NULL,  -- ✅ Link to categories
     description TEXT NOT NULL,
@@ -35,7 +35,6 @@ CREATE TABLE IF NOT EXISTS transactions
         ON UPDATE NO ACTION
         ON DELETE SET NULL,
 
-    -- ✅ Foreign Key linking transactions to users
     CONSTRAINT transactions_user_id_fkey FOREIGN KEY (user_id)
         REFERENCES "user".users (id)
         ON UPDATE NO ACTION

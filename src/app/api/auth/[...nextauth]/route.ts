@@ -6,7 +6,6 @@ import type { JWT } from "next-auth/jwt";
 import type { Session, User } from "next-auth";
 import type { AdapterUser } from "next-auth/adapters";
 
-// ✅ Define Custom User Type
 interface CustomUser extends User {
     id: string;
     name: string;
@@ -85,6 +84,9 @@ const handler = NextAuth({
     },
     secret: process.env.NEXTAUTH_SECRET as string,
 });
+
+
+
 
 export const GET = handler;
 export const POST = handler;

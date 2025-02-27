@@ -9,7 +9,10 @@ const pool = new Pool({
 
 export async function getCategories() {
     try {
-        const result = await pool.query(`SELECT referencecode, type FROM categories ORDER BY type`);
+        const result = await pool.query(`
+            SELECT referencecode, type, color FROM categories 
+            ORDER BY weight
+        `);
         return result.rows;
     } catch (error) {
         console.error("🚨 Database Error Fetching Categories:", error);

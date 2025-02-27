@@ -12,7 +12,7 @@ export default function SignIn() {
     const [error, setError] = useState("");
 
     if (session) {
-        router.push("/"); // Redirect if already signed in
+        router.push("/dashboard"); // Redirect if already signed in
         return null;
     }
 

@@ -15,12 +15,14 @@ interface Allocation {
 
 interface SettingsAllocationProps {
     userId: string;
-    year: number;
-    month: number;
 }
 
-export default function SettingsAllocation({ userId, year, month }: SettingsAllocationProps) {
-    const [allocation, setAllocation] = useState<Allocation>({ savings: 0, needs: 0, wants: 0 });
+export default function SettingsAllocation({ userId }: SettingsAllocationProps) {
+    const [allocation, setAllocation] = useState<Allocation>({
+        savings: 0,
+        needs: 0,
+        wants: 0
+    });
     const [loading, setLoading] = useState<boolean>(true);
     const [saving, setSaving] = useState<boolean>(false);
 
@@ -28,24 +30,20 @@ export default function SettingsAllocation({ userId, year, month }: SettingsAllo
         async function fetchAllocation() {
             setLoading(true);
             try {
-                const data: Allocation | null = await getSpendingAllocation(userId, year, month);
-                console.log("✅ Allocation Data Fetched:", data);
+                const data = await getSpendingAllocation(userId);
 
                 if (data) {
                     setAllocation(data);
                 } else {
                     showToast("No allocation data found. Set your allocation!", "warning");
                 }
-            } catch (error) {
-                console.error("❌ Error fetching allocation:", error);
+            } catch {
                 showToast("Error loading allocation data", "error");
             }
             setLoading(false);
         }
         fetchAllocation();
-    }, [userId, year, month]);
-
-
+    }, [userId]);
 
     const showToast = (message: string, type: "success" | "error" | "warning") => {
         MySwal.fire({
@@ -62,12 +60,9 @@ export default function SettingsAllocation({ userId, year, month }: SettingsAllo
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         const newValue = parseFloat(value) || 0;
-
-        // Calculate new total percentage
         const newAllocation = { ...allocation, [name]: newValue };
-        const totalPercentage = newAllocation.savings + newAllocation.needs + newAllocation.wants;
-
-        // Prevent exceeding 100%
+        const totalPercentage = Number(newAllocation.savings) + Number(newAllocation.needs) + Number(newAllocation.wants);
+        console.log(totalPercentage)
         if (totalPercentage > 100) {
             showToast("Total allocation cannot exceed 100%", "error");
             return;
@@ -77,7 +72,7 @@ export default function SettingsAllocation({ userId, year, month }: SettingsAllo
     };
 
     const handleSave = async () => {
-        const total = allocation.savings + allocation.needs + allocation.wants;
+        const total = Number(allocation.savings) + Number(allocation.needs) + Number(allocation.wants);
         if (total !== 100) {
             showToast("Total allocation must be exactly 100%", "error");
             return;
@@ -86,8 +81,6 @@ export default function SettingsAllocation({ userId, year, month }: SettingsAllo
         setSaving(true);
         const response = await updateSpendingAllocation(
             userId,
-            year,
-            month,
             allocation.savings,
             allocation.needs,
             allocation.wants
@@ -102,19 +95,36 @@ export default function SettingsAllocation({ userId, year, month }: SettingsAllo
         setSaving(false);
     };
 
-    if (loading) return <p>Loading...</p>;
+    if (loading) {
+        return (
+            <div className="p-6 rounded-2xl shadow-lg bg-white animate-pulse">
+                {/* Skeleton for heading */}
+                <div className="h-8 bg-gray-200 rounded w-1/3 mb-6"></div>
+                {/* Skeleton grid for allocation cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {[1, 2, 3].map((i) => (
+                        <div key={i} className="p-6 rounded-2xl shadow-md bg-gray-200">
+                            <div className="h-4 bg-gray-300 rounded w-1/2 mb-4"></div>
+                            <div className="h-10 bg-gray-300 rounded"></div>
+                        </div>
+                    ))}
+                </div>
+                {/* Skeleton for button */}
+                <div className="mt-6 h-10 bg-gray-200 rounded w-32"></div>
+            </div>
+        );
+    }
 
     return (
-        <div className="p-6 rounded-2xl shadow-lg bg-gray-100">
-            <h2 className="text-xl font-semibold mb-4">Set Spending Allocation</h2>
-
+        <div className="p-6 rounded-2xl shadow-lg bg-white">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6">Set Spending Allocation</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[
-                    { title: "Savings", key: "savings", color: "bg-green-100 text-green-800" },
-                    { title: "Needs", key: "needs", color: "bg-blue-100 text-blue-800" },
-                    { title: "Wants", key: "wants", color: "bg-yellow-100 text-yellow-800" },
+                    { title: "Savings", key: "savings", color: "bg-green-50 text-green-700", border: "border-green-200" },
+                    { title: "Needs", key: "needs", color: "bg-blue-50 text-blue-700", border: "border-blue-200" },
+                    { title: "Wants", key: "wants", color: "bg-yellow-50 text-yellow-700", border: "border-yellow-200" },
                 ].map((item) => (
-                    <div key={item.key} className={`p-6 rounded-2xl shadow-md ${item.color} font-semibold text-xl`}>
+                    <div key={item.key} className={`p-6 rounded-2xl shadow-md ${item.color} border ${item.border} font-semibold`}>
                         <p>{item.title}</p>
                         <input
                             type="number"
@@ -123,16 +133,15 @@ export default function SettingsAllocation({ userId, year, month }: SettingsAllo
                             onChange={handleChange}
                             min="0"
                             max="100"
-                            className="mt-2 w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-opacity-50"
+                            className="mt-2 w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
                         />
                     </div>
                 ))}
             </div>
-
             <button
                 onClick={handleSave}
                 disabled={saving}
-                className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition"
+                className="mt-6 w-full md:w-auto bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg shadow-md hover:from-blue-600 hover:to-blue-700 transition font-semibold"
             >
                 {saving ? "Saving..." : "Update Allocation"}
             </button>

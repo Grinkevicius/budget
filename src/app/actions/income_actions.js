@@ -25,10 +25,10 @@ export async function getSpendingAllocation(userId, year, month) {
 export async function updateSpendingAllocation(userId, year, month, savings, needs, wants) {
     try {
         await pool.query(`
-            INSERT INTO spending_allocation (user_id, year, month, savings_percentage, needs_percentage, wants_percentage)
+            INSERT INTO "user".settings (user_id, default_savings_percentage, default_needs_percentage, default_wants_percentage)
             VALUES ($1, $2, $3, $4, $5, $6)
-            ON CONFLICT (user_id, year, month)
-            DO UPDATE SET savings_percentage = $4, needs_percentage = $5, wants_percentage = $6
+            ON CONFLICT (user_id)
+            DO UPDATE SET default_savings_percentage = $4, default_needs_percentage = $5, default_wants_percentage = $6
         `, [userId, year, month, savings, needs, wants]);
 
         return { message: "Allocation updated successfully!" };
@@ -38,29 +38,29 @@ export async function updateSpendingAllocation(userId, year, month, savings, nee
     }
 }
 
-export async function getUserIncome(userId, year, month) {
+export async function getUserIncome(userId) {
     try {
         const result = await pool.query(`
-            SELECT income_amount 
-            FROM income 
-            WHERE user_id = $1 AND year = $2 AND month = $3
-        `, [userId, year, month]);
+            SELECT default_income 
+            FROM "user".settings 
+            WHERE user_id = $1
+        `, [userId]);
 
-        return result.rows.length ? result.rows[0].income_amount : null;
+        return result.rows.length ? result.rows[0].default_income : null;
     } catch (error) {
         console.error("🚨 Database Error:", error);
         return null;
     }
 }
 
-export async function updateUserIncome(userId, year, month, incomeAmount) {
+export async function updateUserIncome(userId, default_income) {
     try {
         await pool.query(`
-            INSERT INTO income (user_id, year, month, income_amount)
-            VALUES ($1, $2, $3, $4)
-            ON CONFLICT (user_id, year, month)
-            DO UPDATE SET income_amount = $4
-        `, [userId, year, month, incomeAmount]);
+            INSERT INTO "user".settings (user_id, default_income)
+            VALUES ($1, $2)
+            ON CONFLICT (user_id)
+            DO UPDATE SET default_income = $2
+        `, [userId, default_income]);
 
         return { message: "Income updated successfully!" };
     } catch (error) {

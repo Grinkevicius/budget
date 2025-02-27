@@ -9,9 +9,8 @@ export default function BudgetCards() {
     return (
         <>
         <Header />
-            <Income userId={"1000000000"} year={2025} month={2}/>
-            <Allocations userId={"1000000000"} year={2025} month={2} />
-
+            <Income userId={"1000000000"}/>
+            <Allocations userId={"1000000000"} />
         </>
     );
 }

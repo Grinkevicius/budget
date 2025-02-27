@@ -2,51 +2,155 @@
 
 import { useEffect, useState } from "react";
 import { getTransactions } from "@/app/actions/getTransactions";
+import Transaction from "@/components/transaction";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+    ContextMenu,
+    ContextMenuTrigger,
+    ContextMenuContent,
+    ContextMenuItem,
+} from "@/components/ui/context-menu";
+import { EditTransaction } from "@/components/editTransaction";
+import { deleteTransaction } from "@/app/actions/deleteTransaction";
 
 interface Transaction {
     referencecode: string;
     description: string;
     amount: number;
     transaction_date: string;
+    category_code: string;
+    is_recurring: boolean;
 }
 
 interface TransactionColumnProps {
     userId: string;
     year: number;
     month: number;
-    category: "Needs" | "Wants" | "Savings";  // ✅ Pass category as a prop
+    category: string;
+    refreshCategoryTracker: () => void;
+    newTransaction?: Transaction;
 }
-
-export default function TransactionColumn({ userId, year, month, category }: TransactionColumnProps) {
+export default function TransactionColumn({
+  userId,
+  year,
+  month,
+  category,
+  refreshCategoryTracker,
+  newTransaction,
+}: TransactionColumnProps) {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedTransaction, setSelectedTransaction] =
+        useState<Transaction | null>(null);
 
-    useEffect(() => {
-        async function fetchData() {
-            setLoading(true);
+    const fetchTransactions = async () => {
+        setLoading(true);
+        try {
             const data = await getTransactions(userId, year, month);
-            const filteredTransactions = data.filter(t => t.type === category); // ✅ Filter by category
-            setTransactions(filteredTransactions);
+            const filtered = data.filter(
+                (t: Transaction) => t.category_code === category
+            );
+            setTransactions(filtered);
+        } catch (error) {
+            console.error("Error fetching transactions:", error);
+        } finally {
             setLoading(false);
         }
-        fetchData();
+    };
+
+    useEffect(() => {
+        fetchTransactions();
     }, [userId, year, month, category]);
 
-    if (loading) return <p>Loading transactions...</p>;
+    useEffect(() => {
+        if (
+            newTransaction &&
+            newTransaction.category_code === category &&
+            !transactions.some((t) => t.referencecode === newTransaction.referencecode)
+        ) {
+            console.log("Appending new transaction:", newTransaction);
+            setTransactions((prev) => [...prev, newTransaction]);
+        }
+    }, [newTransaction, category]);
+
+    const handleEditClose = (updatedTransaction?: Transaction | undefined): void => {
+        if (updatedTransaction) {
+            setTransactions((prev) =>
+                prev.map((t) =>
+                    t.referencecode === updatedTransaction.referencecode ? updatedTransaction : t
+                )
+            );
+            refreshCategoryTracker();
+        }
+        setSelectedTransaction(null);
+    };
+
+    const handleDelete = async (referencecode: string) => {
+        try {
+            await deleteTransaction({ referencecode });
+            setTransactions((prev) =>
+                prev.filter((t) => t.referencecode !== referencecode)
+            );
+            refreshCategoryTracker();
+        } catch (error) {
+            console.error("Error deleting transaction:", error);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="space-y-2 pt-2">
+                <Card className="border p-4 rounded-2xl shadow-md animate-pulse">
+                    <CardHeader>
+                        <CardTitle>
+                            <Skeleton className="h-5 w-2/3" />
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                        {[1, 2, 3].map((item) => (
+                            <div key={item} className="space-y-1">
+                                <Skeleton className="h-4 w-3/4" />
+                                <Skeleton className="h-3 w-1/3" />
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+            </div>
+        );
+    }
 
     return (
-        <div className="p-6 rounded-2xl shadow-lg bg-white text-gray-800 font-semibold text-xl border">
-            <h2 className="text-lg font-bold mb-3">{category}</h2>
-            {transactions.length > 0 ? (
-                transactions.map((t) => (
-                    <div key={t.referencecode} className="text-sm bg-gray-100 p-3 mb-2 rounded-lg">
-                        <p>{t.description}</p>
-                        <p className="text-right text-gray-600">${Number(t.amount).toFixed(2)}</p>
-                    </div>
-                ))
-            ) : (
-                <p className="text-gray-500">No transactions</p>
+        <>
+            <div className="space-y-2 pt-2">
+                {transactions.length > 0 ? (
+                    transactions.map((t) => (
+                        <ContextMenu key={t.referencecode}>
+                            <ContextMenuTrigger asChild>
+                                <div>
+                                    <Transaction {...t} />
+                                </div>
+                            </ContextMenuTrigger>
+                            <ContextMenuContent>
+                                <ContextMenuItem onSelect={() => setSelectedTransaction(t)}>
+                                    Edit Transaction
+                                </ContextMenuItem>
+                                <ContextMenuItem onSelect={() => handleDelete(t.referencecode)}>
+                                    Delete Transaction
+                                </ContextMenuItem>
+                            </ContextMenuContent>
+                        </ContextMenu>
+                    ))
+                ) : (
+                    <p className="text-muted-foreground text-sm">No transactions</p>
+                )}
+            </div>
+            {selectedTransaction && (
+                <EditTransaction
+                    transaction={selectedTransaction}
+                    onClose={handleEditClose}
+                />
             )}
-        </div>
+        </>
     );
 }

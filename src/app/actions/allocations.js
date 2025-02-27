@@ -7,7 +7,6 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false },
 });
 
-// ✅ Fetch both spending allocation & income in a single call
 export async function getSpendingData(userId, year, month) {
     try {
         const spendingResult = await pool.query(`
