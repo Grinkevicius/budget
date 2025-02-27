@@ -14,7 +14,6 @@ export default function BudgetCards() {
     return (
         <>
         <Header />
-            <div> User id - {session.user.id}</div>
             <Income userId={session.user.id}/>
             <Allocations userId={session.user.id} />
         </>

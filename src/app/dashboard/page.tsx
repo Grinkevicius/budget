@@ -89,7 +89,6 @@ export default function BudgetDashboard() {
     return (
         <>
             <Header />
-            <div> User id - {session.user.id}</div>
             <div className="p-6">
                 <div className="p-6 rounded-2xl">
                     <div className="flex justify-between items-center mb-4">
