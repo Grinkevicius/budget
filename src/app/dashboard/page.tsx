@@ -12,6 +12,7 @@ import { MonthYearPicker } from "@/components/datePicker";
 import { Button } from "@/components/ui/button";
 import { AddTransactionDialog } from "@/components/addTransaction";
 import {createBudget} from "@/app/actions/create/createBudget";
+import Income from "@/components/budget/budgetIncome"
 
 interface Transaction {
     referencecode: string;
@@ -26,9 +27,11 @@ export default function BudgetDashboard() {
     const { data: session, status } = useSession();
     const router = useRouter();
 
-    const [categories, setCategories] = useState<
-        { color: string; referencecode: string; type: string }[]
-    >([]);
+    const [categories, setCategories] = useState<{
+        color: string;
+        referencecode: string;
+        type: string
+    }[]>([]);
 
     const [budgetCode, setBudgetCode] = useState<string | null>(null);
     const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
@@ -92,6 +95,7 @@ export default function BudgetDashboard() {
             <div className="p-6">
                 <div className="p-6 rounded-2xl">
                     <div className="flex justify-between items-center mb-4">
+
                         <MonthYearPicker
                             selectedMonth={selectedMonth}
                             selectedYear={selectedYear}
@@ -100,9 +104,22 @@ export default function BudgetDashboard() {
                                 setSelectedYear(year);
                             }}
                         />
-                        <Button variant="outline" onClick={() => setOpen(true)}>
-                            Add
-                        </Button>
+
+                        { !budgetCode ? (
+                        <></>
+                        ) : (
+                        <>
+                            <Income
+                                userid={session.user.id}
+                                selectedMonth={selectedMonth}
+                                selectedYear={selectedYear}
+                            />
+
+                            <Button variant="outline" onClick={() => setOpen(true)}>
+                                Add
+                            </Button>
+                        </>
+                        )}
                     </div>
 
                     {isBudgetLoading ? (

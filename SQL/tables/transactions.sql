@@ -12,8 +12,8 @@ CREATE TABLE IF NOT EXISTS transactions
         ),
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now(),
     user_id BIGINT,
-    budget_code TEXT NOT NULL,  -- ✅ Link to budgets
-    category_code TEXT NOT NULL,  -- ✅ Link to categories
+    budget_code TEXT NOT NULL,
+    category_code TEXT NOT NULL,
     description TEXT NOT NULL,
     amount NUMERIC(10,2) NOT NULL,
     transaction_date DATE NOT NULL,

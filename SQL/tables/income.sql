@@ -15,7 +15,6 @@ CREATE TABLE IF NOT EXISTS income
     income_amount numeric(10,2) NOT NULL,
     created_at timestamp without time zone DEFAULT now(),
     CONSTRAINT income_pkey PRIMARY KEY (referencecode),
-    CONSTRAINT income_user_id_year_month_key UNIQUE (user_id, year, month),
     CONSTRAINT income_user_id_fkey FOREIGN KEY (user_id)
         REFERENCES "user".users (id) MATCH SIMPLE
         ON UPDATE NO ACTION
@@ -25,5 +24,5 @@ CREATE TABLE IF NOT EXISTS income
 
     TABLESPACE pg_default;
 
-ALTER TABLE IF EXISTS settings.income
+ALTER TABLE IF EXISTS income
     OWNER to "default";

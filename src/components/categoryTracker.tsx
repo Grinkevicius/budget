@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-interface CategoryData {
+type CategoryData = {
     category_code: string;
     category_type: string;
     allocated_percentage: number;
@@ -15,7 +15,7 @@ interface CategoryData {
     spent_amount: number;
 }
 
-interface Props {
+type Props = {
     category: string;
     userId: string;
     year: number;
@@ -25,13 +25,13 @@ interface Props {
 }
 
 export default function CategoryTrackerComponent({
-                                                     category,
-                                                     userId,
-                                                     year,
-                                                     month,
-                                                     color,
-                                                     reload,
-                                                 }: Props) {
+    category,
+    userId,
+    year,
+    month,
+    color,
+    reload,
+}: Props) {
     const [data, setData] = useState<CategoryData | null>(null);
     const [loading, setLoading] = useState(true);
     const [initialLoading, setInitialLoading] = useState(true);

@@ -12,27 +12,29 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox component
 import { addTransaction } from "@/app/actions/addTransaction";
 
 interface TransactionInputProps {
     userId: string;
     budgetCode: string;
     categories: { referencecode: string; type: string }[];
-    onCloseAction: (addedTransaction?: never) => void;
+    onCloseAction: (addedTransaction?: any) => void;
 }
 
 export function AddTransactionDialog({
-    userId,
-    budgetCode,
-    categories,
-    onCloseAction,
-}: TransactionInputProps) {
+                                         userId,
+                                         budgetCode,
+                                         categories,
+                                         onCloseAction,
+                                     }: TransactionInputProps) {
     const [description, setDescription] = useState("");
     const [amount, setAmount] = useState("");
     const [category, setCategory] = useState(
         categories.length ? categories[0].referencecode : ""
     );
     const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
+    const [isRecurring, setIsRecurring] = useState(false);
     const [loading, setLoading] = useState(false);
 
     const handleSave = async () => {
@@ -46,6 +48,7 @@ export function AddTransactionDialog({
                 description,
                 amount: Number(amount),
                 transaction_date: date,
+                is_recurring: isRecurring,
             });
             onCloseAction(newTransaction);
         } catch (error) {
@@ -122,6 +125,20 @@ export function AddTransactionDialog({
                             onChange={(e) => setDate(e.target.value)}
                             className="col-span-3"
                         />
+                    </div>
+                    {/* Recurring Checkbox */}
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="is_recurring" className="text-right">
+                            Recurring?
+                        </Label>
+                        <div className="col-span-3 flex items-center">
+                            <Checkbox
+                                id="is_recurring"
+                                checked={isRecurring}
+                                onCheckedChange={(checked) => setIsRecurring(Boolean(checked))}
+                                className="w-4 h-4"
+                            />
+                        </div>
                     </div>
                 </div>
                 <DialogFooter>

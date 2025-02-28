@@ -32,12 +32,11 @@ export function MonthYearPicker({
         { value: 12, label: "December" },
     ];
 
-    // Example: a range of years (current year ±10)
     const currentYear = new Date().getFullYear();
     const years = Array.from({ length: 21 }, (_, i) => currentYear - 10 + i);
 
     return (
-        <div className="flex space-x-4 items-center mb-4">
+        <div className="flex space-x-4 items-center">
             <Select
                 value={selectedMonth.toString()}
                 onValueChange={(value) =>

@@ -8,32 +8,36 @@ interface UpdateTransactionData {
     amount: number;
     transaction_date: string; // Format: YYYY-MM-DD
     note?: string;
+    is_recurring: boolean;
 }
 
 export async function updateTransaction(data: UpdateTransactionData) {
     const query = `
-    UPDATE transactions
-    SET description = $1,
-        amount = $2,
-        transaction_date = $3,
-        note = $4
-    WHERE referencecode = $5
-    RETURNING 
-      referencecode,
-      description,
-      amount,
-      transaction_date,
-      note,
-      category_code,
-      budget_code,
-      user_id,
-      created_at
-  `;
+        UPDATE transactions
+        SET description = $1,
+            amount = $2,
+            transaction_date = $3,
+            note = $4,
+            is_recurring = $5
+        WHERE referencecode = $6
+        RETURNING
+            referencecode,
+            description,
+            amount,
+            transaction_date,
+            note,
+            is_recurring,
+            category_code,
+            budget_code,
+            user_id,
+            created_at
+    `;
     const values = [
         data.description,
         data.amount,
         data.transaction_date,
         data.note || null,
+        data.is_recurring,
         data.referencecode,
     ];
 

@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { updateTransaction } from "@/app/actions/updateTransaction";
 
 interface Transaction {
@@ -29,11 +30,18 @@ interface EditTransactionProps {
     refreshTransactions?: () => void;
 }
 
-export function EditTransaction({ transaction, onCloseAction, refreshTransactions }: EditTransactionProps) {
+export function EditTransaction({
+                                    transaction,
+                                    onCloseAction,
+                                    refreshTransactions,
+                                }: EditTransactionProps) {
     const [description, setDescription] = useState(transaction.description);
     const [amount, setAmount] = useState(transaction.amount);
-    const initialDate = new Date(transaction.transaction_date).toISOString().split("T")[0];
+    const initialDate = new Date(transaction.transaction_date)
+        .toISOString()
+        .split("T")[0];
     const [transactionDate, setTransactionDate] = useState(initialDate);
+    const [isRecurring, setIsRecurring] = useState(transaction.is_recurring);
 
     const handleSave = async () => {
         const updatedTransaction = {
@@ -42,6 +50,7 @@ export function EditTransaction({ transaction, onCloseAction, refreshTransaction
             amount,
             transaction_date: transactionDate,
             category_code: transaction.category_code,
+            is_recurring: isRecurring,
         };
 
         try {
@@ -98,6 +107,17 @@ export function EditTransaction({ transaction, onCloseAction, refreshTransaction
                             value={transactionDate}
                             onChange={(e) => setTransactionDate(e.target.value)}
                             className="col-span-3"
+                        />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="is_recurring" className="text-right">
+                            Recurring?
+                        </Label>
+                        <Checkbox
+                            id="is_recurring"
+                            checked={isRecurring}
+                            onCheckedChange={(checked) => setIsRecurring(!!checked)}
+                            className="w-4 h-4" // Adjust size as needed
                         />
                     </div>
                 </div>
