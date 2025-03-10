@@ -44,23 +44,21 @@ export default function TransactionColumn({
     const [selectedTransaction, setSelectedTransaction] =
         useState<Transaction | null>(null);
 
-    const fetchTransactions = async () => {
-        setLoading(true);
-        try {
-            const data = await getTransactions(userId, year, month);
-            const filtered = data.filter(
-                (t: Transaction) => t.category_code === category
-            );
-            setTransactions(filtered);
-        } catch (error) {
-            console.error("Error fetching transactions:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
-        fetchTransactions();
+        (async () => {
+            setLoading(true);
+            try {
+                const data = await getTransactions(userId, year, month);
+                const filtered = data.filter(
+                    (t: Transaction) => t.category_code === category
+                );
+                setTransactions(filtered);
+            } catch (error) {
+                console.error("Error fetching transactions:", error);
+            } finally {
+                setLoading(false);
+            }
+        })();
     }, [userId, year, month, category]);
 
     useEffect(() => {
@@ -72,7 +70,7 @@ export default function TransactionColumn({
             console.log("Appending new transaction:", newTransaction);
             setTransactions((prev) => [...prev, newTransaction]);
         }
-    }, [newTransaction, category]);
+    }, [newTransaction, category, transactions]);
 
     const handleEditClose = (updatedTransaction?: Transaction | undefined): void => {
         if (updatedTransaction) {

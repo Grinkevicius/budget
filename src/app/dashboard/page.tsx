@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/navbar";
+import Spinner from "@/components/ui/spinner"
 import { getCategories } from "@/app/actions/getCategories";
 import { getBudgetForMonth } from "@/app/actions/getBudget";
 import TransactionColumn from "@/components/TransactionColumn";
@@ -13,6 +14,9 @@ import { Button } from "@/components/ui/button";
 import { AddTransactionDialog } from "@/components/addTransaction";
 import {createBudget} from "@/app/actions/create/createBudget";
 import Income from "@/components/budget/budgetIncome"
+import { Capacitor } from "@capacitor/core";
+import MobileBottomBar from "@/components/mobileBottomBar";
+import Transactions from "@/components/transaction/mobileColumn";
 
 interface Transaction {
     referencecode: string;
@@ -23,8 +27,20 @@ interface Transaction {
     is_recurring: boolean;
 }
 
+function isNativeMobileApp(): boolean {
+    return Capacitor.isNativePlatform();
+}
+
+function getPlatform() {
+    return Capacitor.getPlatform();
+}
+
+console.log(isNativeMobileApp());
+console.log(getPlatform());
+
+
 export default function BudgetDashboard() {
-    const { data: session, status } = useSession();
+    const {data: session, status} = useSession();
     const router = useRouter();
 
     const [categories, setCategories] = useState<{
@@ -34,8 +50,8 @@ export default function BudgetDashboard() {
     }[]>([]);
 
     const [budgetCode, setBudgetCode] = useState<string | null>(null);
-    const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1);
-    const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+    const [month, setMonth] = useState<number>(new Date().getMonth() + 1);
+    const [year, setYear] = useState<number>(new Date().getFullYear());
     const [isBudgetLoading, setIsBudgetLoading] = useState<boolean>(false);
     const [trackerReloads, setTrackerReloads] = useState<{ [key: string]: boolean }>({});
     const [open, setOpen] = useState(false);
@@ -47,7 +63,6 @@ export default function BudgetDashboard() {
         }
     }, [status, router]);
 
-    //GET CATEGORIES
     useEffect(() => {
         async function fetchCategories() {
             const data = await getCategories();
@@ -58,6 +73,7 @@ export default function BudgetDashboard() {
             });
             setTrackerReloads(initialReloads);
         }
+
         fetchCategories();
     }, []);
 
@@ -66,17 +82,17 @@ export default function BudgetDashboard() {
         async function fetchBudget() {
             if (session?.user) {
                 setIsBudgetLoading(true);
-                const data = await getBudgetForMonth(session.user.id, selectedYear, selectedMonth);
+                const data = await getBudgetForMonth(session.user.id, year, month);
                 setBudgetCode(data ? data.referencecode : "");
                 setIsBudgetLoading(false);
             }
         }
-        fetchBudget();
-    }, [session, selectedYear, selectedMonth]);
 
-    //CREATE BUDGET
+        fetchBudget();
+    }, [session, year, month]);
+
     const handleCreate = async () => {
-        const budgetCode = await createBudget(session ? session.user.id : 0, selectedYear, selectedMonth)
+        const budgetCode = await createBudget(session ? session.user.id : 0, year, month)
         setBudgetCode(budgetCode ? budgetCode.referencecode : "");
     }
 
@@ -87,100 +103,109 @@ export default function BudgetDashboard() {
         }));
     };
 
+    const handleMonthYearChange = (newMonth: number, newYear: number) => {
+        setMonth(newMonth);
+        setYear(newYear);
+    };
+
+
     if (!session) return null;
 
     return (
         <>
-            <Header />
-            <div className="p-6">
-                <div className="p-6 rounded-2xl">
-                    <div className="flex justify-between items-center mb-4">
+            <Header/>
 
-                        <MonthYearPicker
-                            selectedMonth={selectedMonth}
-                            selectedYear={selectedYear}
-                            onChange={(month, year) => {
-                                setSelectedMonth(month);
-                                setSelectedYear(year);
-                            }}
-                        />
+            <div className={`w-full md:inline-flex`}>
+                <MonthYearPicker
+                    month={month}
+                    year={year}
+                    onChangeAction={handleMonthYearChange}
+                />
 
-                        { !budgetCode ? (
-                        <></>
-                        ) : (
-                        <>
-                            <Income
-                                userid={session.user.id}
-                                selectedMonth={selectedMonth}
-                                selectedYear={selectedYear}
-                            />
+                {isBudgetLoading || !budgetCode ? ("") : (
+                    <Income
+                        userid={session.user.id}
+                        month={month}
+                        year={year}
+                    />
+                )}
+            </div>
 
-                            <Button variant="outline" onClick={() => setOpen(true)}>
-                                Add
-                            </Button>
-                        </>
-                        )}
+
+            {isBudgetLoading ? (
+                <Spinner />
+            ) : !budgetCode ? (
+                <>
+                    <p>No budget code found.</p>
+                    <Button variant="outline" onClick={handleCreate}>Create</Button>
+                </>
+            ) : (
+                <>
+                    <div className="grid grid-cols-3 md:grid-cols-3 p-2">
+
+                        {categories.map((cat) => (
+
+                            <div key={cat.referencecode} className="flex flex-col">
+
+                                <CategoryTracker
+                                    category={cat.referencecode}
+                                    userId={session.user.id}
+                                    year={year}
+                                    month={month}
+                                    color={cat.color}
+                                    reload={trackerReloads[cat.referencecode]}
+                                />
+
+                                {/*<TransactionColumn*/}
+                                {/*    userId={session.user.id}*/}
+                                {/*    year={year}*/}
+                                {/*    month={month}*/}
+                                {/*    category={cat.referencecode}*/}
+                                {/*    refreshCategoryTrackerAction={() => refreshCategoryTrackerAction(cat.referencecode)}*/}
+                                {/*    newTransaction={*/}
+                                {/*        newTransaction && newTransaction.category_code === cat.referencecode*/}
+                                {/*            ? newTransaction*/}
+                                {/*            : undefined*/}
+                                {/*    }*/}
+                                {/*    key={cat.referencecode}*/}
+                                {/*    />*/}
+                            </div>
+                        ))
+                        }
                     </div>
 
-                    {isBudgetLoading ? (
-                        <p>Loading budget data...</p>
-                    ) : !budgetCode ? (
-                        <>
-                            <p>No budget code found.</p>
-                            <Button variant="outline" onClick={handleCreate}>Create</Button>
-                        </>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-3 pb-3 gap-3">
-                            {categories.map((cat) => (
-                                <div key={cat.referencecode} className="flex flex-col">
-
-                                    <CategoryTracker
-                                        category={cat.referencecode}
-                                        userId={session.user.id}
-                                        year={selectedYear}
-                                        month={selectedMonth}
-                                        color={cat.color}
-                                        reload={trackerReloads[cat.referencecode]}
-                                    />
-
-
-
-                                    <TransactionColumn
-                                        userId={session.user.id}
-                                        year={selectedYear}
-                                        month={selectedMonth}
-                                        category={cat.referencecode}
-                                        refreshCategoryTrackerAction={() => refreshCategoryTrackerAction(cat.referencecode)}
-                                        newTransaction={
-                                            newTransaction && newTransaction.category_code === cat.referencecode
-                                                ? newTransaction
-                                                : undefined
-                                        }
-                                        key={cat.referencecode}
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                    )}
-
-                    {open && (
-                        <AddTransactionDialog
+                    <div className={`flex w-full `}>
+                        <Transactions
                             userId={session.user.id}
-                            budgetCode={budgetCode!}
-                            categories={categories}
-                            onCloseAction={(addedTransaction? : Transaction) => {
-                                setOpen(false);
-                                if (addedTransaction) {
-                                    console.log("New transaction added:", addedTransaction);
-                                    setNewTransaction(addedTransaction);
-                                    refreshCategoryTrackerAction(addedTransaction.category_code);
-                                    setTimeout(() => setNewTransaction(null), 10);
-                                }
-                            }}
+                            year={year}
+                            month={month}
                         />
-                    )}
-                </div>
-            </div>
+                    </div>
+
+                </>
+
+
+            )}
+
+            {open && (
+                <AddTransactionDialog
+                    userId={session.user.id}
+                    budgetCode={budgetCode!}
+                    categories={categories}
+                    onCloseAction={(addedTransaction? : Transaction) => {
+                        setOpen(false);
+                        if (addedTransaction) {
+                            setNewTransaction(addedTransaction);
+                            refreshCategoryTrackerAction(addedTransaction.category_code);
+                            setTimeout(() => setNewTransaction(null), 10);
+                        }
+                    }}
+                />
+            )}
+
+            <div className={`h-[60px]`}></div>
+            <MobileBottomBar onCreate={() => setOpen(true)} />
+
         </>
     );
 }

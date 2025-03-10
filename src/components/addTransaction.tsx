@@ -19,7 +19,7 @@ interface TransactionInputProps {
     userId: string;
     budgetCode: string;
     categories: { referencecode: string; type: string }[];
-    onCloseAction: (addedTransaction?: any) => void;
+    onCloseAction: (addedTransaction?: never) => void;
 }
 
 export function AddTransactionDialog({

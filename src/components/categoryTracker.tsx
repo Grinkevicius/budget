@@ -3,6 +3,8 @@ import { getCategoryData } from "@/app/actions/getCategoryData";
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Skeleton } from "@/components/ui/skeleton";
+import {Button} from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress"
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
@@ -64,20 +66,20 @@ export default function CategoryTrackerComponent({
         fetchData();
     }, [category, userId, year, month, reload]);
 
-    if (initialLoading && loading) {
-        return (
-            <div
-                style={{ backgroundColor: color }}
-                className="p-3 rounded-2xl shadow-md border flex items-center"
-            >
-                <Skeleton className="w-[3.5rem] h-[3.5rem] rounded-full mr-3" />
-                <div className="flex-1 space-y-2">
-                    <Skeleton className="h-4 w-1/2" />
-                    <Skeleton className="h-3 w-1/3" />
-                </div>
-            </div>
-        );
-    }
+    // if (initialLoading && loading) {
+    //     return (
+    //         <div
+    //             style={{ backgroundColor: color }}
+    //             className="p-3 rounded-2xl shadow-md border flex items-center"
+    //         >
+    //             <Skeleton className="w-[3.5rem] h-[3.5rem] rounded-full mr-3" />
+    //             <div className="flex-1 space-y-2">
+    //                 <Skeleton className="h-4 w-1/2" />
+    //                 <Skeleton className="h-3 w-1/3" />
+    //             </div>
+    //         </div>
+    //     );
+    // }
 
     if (!data) return <div>No data found.</div>;
 
@@ -104,25 +106,63 @@ export default function CategoryTrackerComponent({
     };
 
     return (
-        <div
-            style={{ backgroundColor: color }}
-            className="p-3 rounded-2xl shadow-md border flex items-center text-xl"
-        >
-            <div className="relative w-[3.5rem] h-[3.5rem] flex justify-center items-center mr-3">
-                <Doughnut data={chartData} options={chartOptions} />
-                <div className="absolute inset-0 flex items-center justify-center text-black text-xs">
-                    {percentSpent.toFixed(0)}%
+        <div className={`p-2 w-full`}>
+            <div
+                style={{ backgroundColor: color }}
+                className="p-3 w-full md:w-full rounded-xl shadow-md border flex items-center text-xl justify-between"
+            >
+
+                <div className={`items-center justify-center hidden sm:inline-flex `}>
+                    <div className="w-[3.3rem] h-[3.3rem] flex items-center justify-center relative">
+                        <Doughnut data={chartData} options={chartOptions} />
+                        <div className="absolute inset-0 flex items-center justify-center text-black text-xs">
+                            {percentSpent.toFixed(0)}%
+                        </div>
+                    </div>
+
+                    <div className={`flex flex-col px-3`}>
+                        <p className={``}>{data.category_type}</p>
+                        <div className="text-sm mt-1 xs:block sm:hidden lg:block">
+                            <p>
+                                ${Number(data.spent_amount)} / ${Number(data.max_spend)}
+                            </p>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div>
-                <p>
-                    {data.category_type}: {data.allocated_percentage}%
-                </p>
-                <div className="text-sm mt-1">
-                    <p>
-                        ${Number(data.spent_amount)} / ${Number(data.max_spend)}
-                    </p>
+
+                <div className={`flex flex-col w-full justify-center sm:hidden`}>
+
+
+                    <div className=" w-full h-[30px] pt-3.5 flex items-center justify-center relative">
+
+                        <div className=" w-full flex items-center justify-center relative">
+                            <Progress className={color} value={Number(percentSpent.toFixed(0))} />
+                        </div>
+
+                        <div className="absolute top-[1px] right-0 flex items-center justify-center text-black text-xs">
+                            {percentSpent.toFixed(0)}%
+                        </div>
+
+                        <div className="absolute top-[1px] left-0 flex items-center justify-center text-black text-xs">
+                            <p className={``}>{data.category_type}</p>
+                        </div>
+
+                    </div>
+
+
                 </div>
+
+
+
+                <div className={`hidden md:flex`}>
+                    <div className={`w-full text-center`}>
+                        <Button variant="ghost">
+                            Test
+                        </Button>
+                    </div>
+                </div>
+
+
             </div>
         </div>
     );

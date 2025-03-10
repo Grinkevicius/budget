@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import { getBudgetIncome } from "@/app/actions/get/getBudgetIncome";
-import { createIncomeEntry } from "@/app/actions/create/createIncomeEntry";
-import { deleteIncomeEntry } from "@/app/actions/delete/deleteIncomeEntry";
-import { Button } from "@/components/ui/button";
+import {useEffect, useState} from "react";
+import {getBudgetIncome} from "@/app/actions/get/getBudgetIncome";
+import {createIncomeEntry} from "@/app/actions/create/createIncomeEntry";
+import {deleteIncomeEntry} from "@/app/actions/delete/deleteIncomeEntry";
+import {Button} from "@/components/ui/button";
 import {
     Dialog,
     DialogTrigger,
@@ -11,12 +11,13 @@ import {
     DialogDescription,
     DialogClose,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
+import {Input} from "@/components/ui/input";
+import {ChevronDoubleRightIcon} from "@heroicons/react/16/solid";
 
 type Props = {
     userid: string;
-    selectedMonth: number;
-    selectedYear: number;
+    month: number;
+    year: number;
 };
 
 export type Income = {
@@ -26,8 +27,8 @@ export type Income = {
 
 export default function BudgetIncome({
      userid,
-     selectedMonth,
-     selectedYear,
+     month,
+     year,
  }: Props) {
     const [totalIncome, setTotalIncome] = useState<number>(0);
     const [income, setIncome] = useState<Income[]>([]);
@@ -35,22 +36,23 @@ export default function BudgetIncome({
     useEffect(() => {
         async function fetchIncome() {
             let total = 0;
-            const fetchedIncome = await getBudgetIncome(userid, selectedYear, selectedMonth);
+            const fetchedIncome = await getBudgetIncome(userid, year, month);
             fetchedIncome.forEach((inc: Income) => {
                 total += Number(inc.income_amount);
             });
             setTotalIncome(total);
             setIncome(fetchedIncome);
         }
+
         fetchIncome();
-    }, [selectedMonth, selectedYear]);
+    }, [month, year, userid]);
 
     async function handleAddIncome(newAmount: number) {
         try {
             const newEntry: Income = await createIncomeEntry({
                 userId: userid,
-                year: selectedYear,
-                month: selectedMonth,
+                year: year,
+                month: month,
                 income_amount: newAmount,
             });
             setIncome((prev) => [...prev, newEntry]);
@@ -66,19 +68,17 @@ export default function BudgetIncome({
             setIncome((prev) => prev.filter((inc) => inc.referencecode !== referencecode));
             setTotalIncome((prev) => prev - removedEntry.income_amount);
 
-            deleteIncomeEntry({ userId: userid, referenceCode: removedEntry.referencecode});
+            deleteIncomeEntry({userId: userid, referenceCode: removedEntry.referencecode});
         }
     }
 
     return (
-        <div className="flex items-center space-x-4">
-            <span>Income: {totalIncome}</span>
-            <ManageIncomeModal
-                income={income}
-                onAdd={handleAddIncome}
-                onRemove={handleRemoveIncome}
-            />
-        </div>
+        <ManageIncomeModal
+            income={income}
+            onAdd={handleAddIncome}
+            onRemove={handleRemoveIncome}
+            totalIncome={totalIncome}
+        />
     );
 }
 
@@ -86,12 +86,14 @@ type ManageIncomeModalProps = {
     income: Income[];
     onAdd: (newAmount: number) => Promise<void>;
     onRemove: (referencecode: string) => void;
+    totalIncome: number;
 };
 
 export function ManageIncomeModal({
-    income,
-    onAdd,
-    onRemove,
+  income,
+  onAdd,
+  onRemove,
+  totalIncome,
 }: ManageIncomeModalProps) {
     const [open, setOpen] = useState(false);
     const [newIncome, setNewIncome] = useState<number>(0);
@@ -99,15 +101,42 @@ export function ManageIncomeModal({
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline">Manage Income</Button>
+                <div className="flex w-full md:w-4/6 items-center px-4">
+                    <div className="flex w-full p-6 md:p-2 bg-white dark:bg-gray-800 rounded-3xl  border shadow-md cursor-pointer align-center">
+
+                        <div className={`w-full md:inline-flex md:px-4`}>
+
+                                <div className={`flex justify-between text-gray-500`}>
+                                    <p className="text-sm uppercase">Income </p>
+                                    <ChevronDoubleRightIcon className="h-6 w-6 text-current md:hidden"/>
+                                </div>
+
+                                <p className="mt-1 text-3xl md:text-sm md:mt-0 md:px-3 tracking-wide font-bold text-gray-900 dark:text-white">
+                                    {
+                                        new Intl.NumberFormat("en-US", {
+                                            style: "currency",
+                                            currency: "USD",
+                                        }).format(totalIncome)
+                                    }
+                                </p>
+
+                                <div className="align-center self-end text-gray-500 hidden md:flex w-[100%] justify-end">
+                                    <ChevronDoubleRightIcon className="h-5 w-5 self-end"/>
+                                </div>
+
+
+                            </div>
+                    </div>
+                </div>
             </DialogTrigger>
+
             <DialogContent className="sm:max-w-[425px]">
                 <DialogTitle>Manage Income</DialogTitle>
                 <DialogDescription>
                     Add new income entries or remove existing ones.
                 </DialogDescription>
-                <div className="mt-4 space-y-4">
-                    {/* Input to add a new income entry */}
+                <div className="mt-4 space-y-4 p-5">
+
                     <div className="flex items-center space-x-2">
                         <Input
                             type="number"

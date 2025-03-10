@@ -13,7 +13,7 @@ export default function BudgetCards() {
 
     return (
         <>
-        <Header />
+            <Header />
             <Income userId={session.user.id}/>
             <Allocations userId={session.user.id} />
         </>

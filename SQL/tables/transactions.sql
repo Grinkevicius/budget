@@ -5,6 +5,7 @@
 
 CREATE TABLE IF NOT EXISTS transactions
 (
+    --REDO REF CODES
     referencecode TEXT NOT NULL DEFAULT (
         'TRA'
             || to_char(NOW(), 'YYYYMMDDHH24MISS')
@@ -14,6 +15,7 @@ CREATE TABLE IF NOT EXISTS transactions
     user_id BIGINT,
     budget_code TEXT NOT NULL,
     category_code TEXT NOT NULL,
+    vault_code TEXT,
     description TEXT NOT NULL,
     amount NUMERIC(10,2) NOT NULL,
     transaction_date DATE NOT NULL,
@@ -23,13 +25,11 @@ CREATE TABLE IF NOT EXISTS transactions
 
     CONSTRAINT transactions_pkey PRIMARY KEY (referencecode),
 
-    -- ✅ Foreign Key linking transactions to budgets
     CONSTRAINT transactions_budget_code_fkey FOREIGN KEY (budget_code)
         REFERENCES budgets (referencecode)
         ON UPDATE NO ACTION
         ON DELETE CASCADE,
 
-    -- ✅ Foreign Key linking transactions to categories
     CONSTRAINT transactions_category_code_fkey FOREIGN KEY (category_code)
         REFERENCES categories (referencecode)
         ON UPDATE NO ACTION
@@ -40,7 +40,12 @@ CREATE TABLE IF NOT EXISTS transactions
         ON UPDATE NO ACTION
         ON DELETE CASCADE,
 
-    -- ✅ Ensure amount is positive
+    CONSTRAINT transactions_vault_id_fkey FOREIGN KEY (vault_code)
+        REFERENCES vaults (referencecode)
+        ON UPDATE NO ACTION
+        ON DELETE SET NULL,
+
+
     CONSTRAINT transactions_amount_check CHECK (amount > 0)
 );
 

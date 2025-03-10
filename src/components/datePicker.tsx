@@ -1,77 +1,54 @@
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
+"use client";
 
-type MonthYearPickerProps = {
-    selectedMonth: number;
-    selectedYear: number;
-    onChange: (month: number, year: number) => void;
-};
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { format } from "date-fns";
+import { MonthYearCalendar } from "@/components/MonthlyYearCalendar";
+
+interface MonthYearPickerProps {
+    month: number;
+    year: number;
+    onChangeAction: (month: number, year: number) => void;
+}
 
 export function MonthYearPicker({
-                                    selectedMonth,
-                                    selectedYear,
-                                    onChange,
-                                }: MonthYearPickerProps) {
-    const months = [
-        { value: 1, label: "January" },
-        { value: 2, label: "February" },
-        { value: 3, label: "March" },
-        { value: 4, label: "April" },
-        { value: 5, label: "May" },
-        { value: 6, label: "June" },
-        { value: 7, label: "July" },
-        { value: 8, label: "August" },
-        { value: 9, label: "September" },
-        { value: 10, label: "October" },
-        { value: 11, label: "November" },
-        { value: 12, label: "December" },
-    ];
+    month,
+    year,
+    onChangeAction,
+}: MonthYearPickerProps) {
+    const [open, setOpen] = useState(false);
+    const [selectedDate, setSelectedDate] = useState<Date>(new Date(year, month - 1, 1));
 
-    const currentYear = new Date().getFullYear();
-    const years = Array.from({ length: 21 }, (_, i) => currentYear - 10 + i);
+    useEffect(() => {
+        setSelectedDate(new Date(year, month - 1, 1));
+    }, [month, year]);
+
+    const handleSelect = (date: Date) => {
+        setSelectedDate(date);
+        onChangeAction(date.getMonth() + 1, date.getFullYear());
+        setOpen(false);
+    };
 
     return (
-        <div className="flex space-x-4 items-center">
-            <Select
-                value={selectedMonth.toString()}
-                onValueChange={(value) =>
-                    onChange(parseInt(value, 10), selectedYear)
-                }
-            >
-                <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Select Month" />
-                </SelectTrigger>
-                <SelectContent>
-                    {months.map((m) => (
-                        <SelectItem key={m.value} value={m.value.toString()}>
-                            {m.label}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
-
-            <Select
-                value={selectedYear.toString()}
-                onValueChange={(value) =>
-                    onChange(selectedMonth, parseInt(value, 10))
-                }
-            >
-                <SelectTrigger className="w-[100px]">
-                    <SelectValue placeholder="Select Year" />
-                </SelectTrigger>
-                <SelectContent>
-                    {years.map((y) => (
-                        <SelectItem key={y} value={y.toString()}>
-                            {y}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
+        <div className="flex w-full md:w-2/6 justify-center items-center p-4 pt-4 md:pt-2">
+            <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger asChild>
+                    <Button
+                        variant="outline"
+                        className="w-full rounded-3xl justify-center text-center shadow-md font-normal"
+                        onClick={() => setOpen(true)}
+                    >
+                        {format(selectedDate, "MMMM yyyy")}
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="p-0">
+                    <MonthYearCalendar
+                        selectedDate={selectedDate}
+                        onSelectAction={handleSelect}
+                    />
+                </PopoverContent>
+            </Popover>
         </div>
     );
 }
