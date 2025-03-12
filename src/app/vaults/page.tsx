@@ -43,7 +43,6 @@ export default function Vaults() {
     }, [session]);
 
     function buildVaults() {
-
         return vault.map((v) => (
             <Card key={v.referencecode} className={`p-2 m-1 flex flex-col`}>
                 <div className={`flex justify-between items-center`}>
@@ -77,7 +76,7 @@ export default function Vaults() {
         <>
             <Breadcrumbs items={breadcrumbs} />
 
-            <div className={`flex flex-col px-2`}>
+            <div className="mx-auto max-w-7xl px-4 w-full flex flex-col">
                 {buildVaults()}
             </div>
 

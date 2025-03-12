@@ -20,7 +20,7 @@ export async function getTransactions(userId: string, year: number, month: numbe
                AND b.year = $2
                AND b.month = $3
                AND t.category_code = $4
-             ORDER BY t.transaction_date `,
+             ORDER BY t.transaction_date desc`,
                 [userId, year, month, category_code]
             );
 
@@ -33,7 +33,7 @@ export async function getTransactions(userId: string, year: number, month: numbe
              WHERE b.user_id = $1
                AND b.year = $2
                AND b.month = $3
-             ORDER BY t.transaction_date `,
+             ORDER BY t.transaction_date desc `,
                 [userId, year, month]
             );
 

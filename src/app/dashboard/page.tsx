@@ -110,8 +110,8 @@ export default function BudgetDashboard() {
     if (!session) return null;
 
     return (
-        <>
-            <div className={`w-full md:inline-flex`}>
+        <div className="mx-auto max-w-7xl px-4 w-full flex flex-col">
+        <div className={`w-full md:inline-flex`}>
                 <MonthYearPicker
                     month={month}
                     year={year}
@@ -140,7 +140,6 @@ export default function BudgetDashboard() {
                     <div className="grid grid-cols-3 md:grid-cols-3 p-2">
 
                         {categories.map((cat) => (
-
                             <div key={cat.referencecode} className="flex flex-col">
 
                                 <CategoryTracker
@@ -167,7 +166,10 @@ export default function BudgetDashboard() {
                         }
                     </div>
 
-                    <div className={`flex w-full sm:hidden`}>
+                    <div className={`flex flex-col w-full sm:hidden`}>
+                        <div className={`px-6 text-gray-500`}>
+                            Expenses:
+                        </div>
                         <Transactions
                             userId={session.user.id}
                             year={year}
@@ -201,6 +203,6 @@ export default function BudgetDashboard() {
             <div className={`h-[60px]`}></div>
             <MobileBottomBar onCreate={() => setOpen(true)} session={session} />
 
-        </>
+        </div>
     );
 }
