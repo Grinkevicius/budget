@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS transactions
         ),
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now(),
     user_id BIGINT,
-    budget_code TEXT NOT NULL,
+    budget_code TEXT,
     category_code TEXT NOT NULL,
     vault_code TEXT,
     description TEXT NOT NULL,

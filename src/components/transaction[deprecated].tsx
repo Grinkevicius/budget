@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { ArrowPathIcon } from '@heroicons/react/24/outline';
 
-export default function Transaction({
+export default function TransactionDeprecated({
     description,
     amount,
     transaction_date,

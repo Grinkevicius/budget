@@ -66,22 +66,31 @@ export default function CategoryTrackerComponent({
         fetchData();
     }, [category, userId, year, month, reload]);
 
-    // if (initialLoading && loading) {
-    //     return (
-    //         <div
-    //             style={{ backgroundColor: color }}
-    //             className="p-3 rounded-2xl shadow-md border flex items-center"
-    //         >
-    //             <Skeleton className="w-[3.5rem] h-[3.5rem] rounded-full mr-3" />
-    //             <div className="flex-1 space-y-2">
-    //                 <Skeleton className="h-4 w-1/2" />
-    //                 <Skeleton className="h-3 w-1/3" />
-    //             </div>
-    //         </div>
-    //     );
-    // }
+    if (initialLoading && loading) {
+        return (
+            <div
+                style={{ backgroundColor: color }}
+                className="p-3 rounded-2xl shadow-md border flex items-center"
+            >
+                <Skeleton className="w-[3.5rem] h-[3.5rem] rounded-full mr-3" />
+                <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-3 w-1/3" />
+                </div>
+            </div>
+        );
+    }
 
     if (!data) return <div>No data found.</div>;
+
+
+    function getColor(category: string) {
+        switch (category) {
+            case "CAT2025022222030415": return "bg-blue-400";
+            case "CAT202502222203044D": return "bg-green-400";
+            case "CAT20250222220304D1": return "bg-amber-400";
+        }
+    }
 
     const chartData = {
         datasets: [
@@ -130,28 +139,19 @@ export default function CategoryTrackerComponent({
                     </div>
                 </div>
 
-                <div className={`flex flex-col w-full justify-center sm:hidden`}>
-
-
-                    <div className=" w-full h-[30px] pt-3.5 flex items-center justify-center relative">
-
-                        <div className=" w-full flex items-center justify-center relative">
-                            <Progress className={color} value={Number(percentSpent.toFixed(0))} />
-                        </div>
-
-                        <div className="absolute top-[1px] right-0 flex items-center justify-center text-black text-xs">
-                            {percentSpent.toFixed(0)}%
-                        </div>
-
-                        <div className="absolute top-[1px] left-0 flex items-center justify-center text-black text-xs">
-                            <p className={``}>{data.category_type}</p>
-                        </div>
-
+                <div className="flex flex-col w-full justify-center sm:hidden">
+                    <div className="flex items-center justify-start">
+                        <span className={`text-sm`}>{data.category_type}</span>
                     </div>
 
-
+                    <div className="w-full flex flex-col text-xs items-center">
+                        <Progress
+                            value={Number(percentSpent.toFixed(0))}
+                            indicatorColor={getColor(category)}
+                        />
+                        <span className={`self-end`}>{percentSpent.toFixed(0)}%</span>
+                    </div>
                 </div>
-
 
 
                 <div className={`hidden md:flex`}>

@@ -3,6 +3,7 @@
 import * as React from "react"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import {ArrowLeft, ArrowRight} from "lucide-react";
 
 interface MonthYearCalendarProps {
     initialYear?: number;
@@ -47,7 +48,7 @@ export function MonthYearCalendar({
                     className="px-2 py-1 text-sm"
                     onClick={() => handleYearChange(-1)}
                 >
-                    &lt; Year
+                    <ArrowLeft />
                 </Button>
                 <span className="font-semibold">
           {viewYear}
@@ -57,7 +58,7 @@ export function MonthYearCalendar({
                     className="px-2 py-1 text-sm"
                     onClick={() => handleYearChange(1)}
                 >
-                    Year &gt;
+                    <ArrowRight />
                 </Button>
             </div>
 
