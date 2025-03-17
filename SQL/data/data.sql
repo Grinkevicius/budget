@@ -1,8 +1,8 @@
 TRUNCATE categories;
-INSERT INTO categories (referencecode, type, color, weight) VALUES
-('CAT2025022222030415', 'Needs', 'rgb(219, 234, 254)', 2),
-('CAT20250222220304D1', 'Wants', 'rgb(254, 249, 195)', 3),
-('CAT202502222203044D', 'Savings', 'rgb(220, 252, 231)', 1);
+INSERT INTO categories (referencecode, type, weight) VALUES
+('CAT2025022222030415', 'Needs', 2),
+('CAT20250222220304D1', 'Wants', 3),
+('CAT202502222203044D', 'Savings', 1);
 
 INSERT INTO budgets (referencecode, user_id, year, month, created_at)
 VALUES

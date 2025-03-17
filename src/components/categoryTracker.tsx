@@ -17,15 +17,6 @@ type CategoryData = {
     spent_amount: number;
 }
 
-type Props = {
-    category: string;
-    userId: string;
-    year: number;
-    month: number;
-    color: string;
-    reload?: boolean;
-}
-
 export default function CategoryTrackerComponent({
     category,
     userId,
@@ -33,7 +24,14 @@ export default function CategoryTrackerComponent({
     month,
     color,
     reload,
-}: Props) {
+}: {
+    category: string;
+    userId: string;
+    year: number;
+    month: number;
+    color: string;
+    reload?: boolean;
+}) {
     const [data, setData] = useState<CategoryData | null>(null);
     const [loading, setLoading] = useState(true);
     const [initialLoading, setInitialLoading] = useState(true);
@@ -44,6 +42,7 @@ export default function CategoryTrackerComponent({
             if (initialLoading) {
                 setLoading(true);
             }
+
             const result: CategoryData | null = await getCategoryData(
                 category,
                 userId,
@@ -63,13 +62,13 @@ export default function CategoryTrackerComponent({
                 setInitialLoading(false);
             }
         }
-        fetchData();
+        fetchData().then();
+
     }, [category, userId, year, month, reload]);
 
     if (initialLoading && loading) {
         return (
             <div
-                style={{ backgroundColor: color }}
                 className="p-3 rounded-2xl shadow-md border flex items-center"
             >
                 <Skeleton className="w-[3.5rem] h-[3.5rem] rounded-full mr-3" />
@@ -84,13 +83,13 @@ export default function CategoryTrackerComponent({
     if (!data) return <div>No data found.</div>;
 
 
-    function getColor(category: string) {
-        switch (category) {
-            case "CAT2025022222030415": return "bg-blue-400";
-            case "CAT202502222203044D": return "bg-green-400";
-            case "CAT20250222220304D1": return "bg-amber-400";
-        }
-    }
+    // function getColor(category: string) {
+    //     switch (category) {
+    //         case "CAT2025022222030415": return "bg-blue-400";
+    //         case "CAT202502222203044D": return "bg-green-400";
+    //         case "CAT20250222220304D1": return "bg-amber-400";
+    //     }
+    // }
 
     const chartData = {
         datasets: [
@@ -124,7 +123,7 @@ export default function CategoryTrackerComponent({
                 <div className={`items-center justify-center hidden sm:inline-flex `}>
                     <div className="w-[3.3rem] h-[3.3rem] flex items-center justify-center relative">
                         <Doughnut data={chartData} options={chartOptions} />
-                        <div className="absolute inset-0 flex items-center justify-center text-black text-xs">
+                        <div className="absolute inset-0 flex items-center justify-center text-black dark:text-white text-xs">
                             {percentSpent.toFixed(0)}%
                         </div>
                     </div>
@@ -147,7 +146,7 @@ export default function CategoryTrackerComponent({
                     <div className="w-full flex flex-col text-xs items-center">
                         <Progress
                             value={Number(percentSpent.toFixed(0))}
-                            indicatorColor={getColor(category)}
+                            indicatorColor={color}
                         />
                         <span className={`self-end`}>{percentSpent.toFixed(0)}%</span>
                     </div>

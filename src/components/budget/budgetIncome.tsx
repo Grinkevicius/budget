@@ -44,7 +44,7 @@ export default function BudgetIncome({
             setIncome(fetchedIncome);
         }
 
-        fetchIncome();
+        fetchIncome().then();
     }, [month, year, userid]);
 
     async function handleAddIncome(newAmount: number) {
@@ -68,7 +68,7 @@ export default function BudgetIncome({
             setIncome((prev) => prev.filter((inc) => inc.referencecode !== referencecode));
             setTotalIncome((prev) => prev - removedEntry.income_amount);
 
-            deleteIncomeEntry({userId: userid, referenceCode: removedEntry.referencecode});
+            deleteIncomeEntry({userId: userid, referenceCode: removedEntry.referencecode}).then();
         }
     }
 
@@ -101,8 +101,8 @@ export function ManageIncomeModal({
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <div className="flex w-full md:w-4/6 items-center px-4">
-                    <div className="flex w-full p-6 md:p-2 bg-white dark:bg-gray-800 rounded-3xl  border shadow-md cursor-pointer align-center">
+                <div className="flex w-full md:w-[50%] lg:w-[34%] items-center px-4">
+                    <div className="flex w-full p-6 md:p-2 bg-white dark:bg-[#18181b] rounded-3xl  border shadow-md cursor-pointer align-center">
 
                         <div className={`w-full md:inline-flex md:px-4`}>
 

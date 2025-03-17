@@ -17,7 +17,7 @@ type MobileBottomBarProps = {
 
 const MobileBottomBar: React.FC<MobileBottomBarProps> = ({ onCreate, session }) => {
     return (
-        <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border shadow-sm md:hidden">
+        <nav className="fixed bottom-0 left-0 right-0 dark:bg-[#18181b] border-t border-border shadow-sm md:hidden">
             <ul className="flex justify-around">
                 <li>
                     <Link href="/public" className="flex flex-col items-center justify-center p-2">

@@ -62,7 +62,6 @@ export default function SettingsAllocation({ userId }: SettingsAllocationProps) 
         const newValue = parseFloat(value) || 0;
         const newAllocation = { ...allocation, [name]: newValue };
         const totalPercentage = Number(newAllocation.savings) + Number(newAllocation.needs) + Number(newAllocation.wants);
-        console.log(totalPercentage)
         if (totalPercentage > 100) {
             showToast("Total allocation cannot exceed 100%", "error");
             return;

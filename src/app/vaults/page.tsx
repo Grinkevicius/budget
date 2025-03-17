@@ -25,8 +25,6 @@ const breadcrumbs: BreadcrumbItem[] = [
     { label: "Vaults", href: "/vaults", separator: false }
 ];
 
-
-
 export default function Vaults() {
     const router = useRouter();
     const { data: session } = useSession();
@@ -74,9 +72,9 @@ export default function Vaults() {
 
     return (
         <>
-            <Breadcrumbs items={breadcrumbs} />
 
             <div className="mx-auto max-w-7xl px-4 w-full flex flex-col">
+                <Breadcrumbs items={breadcrumbs} />
                 {buildVaults()}
             </div>
 

@@ -1,45 +1,114 @@
-import { Calendar, Home, Inbox, Search, Settings } from "lucide-react"
+'use client';
+
+import React, { useEffect, useState } from "react";
+import {
+    Vault,
+    Home,
+    LayoutDashboard,
+    Sun,
+    Moon,
+    ChevronRight,
+    MoreHorizontal,
+    Folder,
+    Share,
+    Trash2
+} from "lucide-react";
+import { useTheme } from "next-themes";
 
 import {
     Sidebar,
-    SidebarContent,
+    SidebarContent, SidebarFooter,
     SidebarGroup,
     SidebarGroupContent,
     SidebarGroupLabel,
     SidebarMenu,
+    SidebarMenuAction,
     SidebarMenuButton,
     SidebarMenuItem,
-} from "@/components/ui/sidebar"
+    SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem, useSidebar,
+} from "@/components/ui/sidebar";
+import Link from "next/link";
+import { NavUser } from "@/components/sidebar/user";
+import {useSession} from "next-auth/react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
+import {getVaults} from "@/app/actions/get/getVaults";
+import {DropdownMenuSeparator, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 
-const items = [
-    {
-        title: "Home",
-        url: "#",
-        icon: Home,
-    },
-    {
-        title: "Inbox",
-        url: "#",
-        icon: Inbox,
-    },
-    {
-        title: "Calendar",
-        url: "#",
-        icon: Calendar,
-    },
-    {
-        title: "Search",
-        url: "#",
-        icon: Search,
-    },
-    {
-        title: "Settings",
-        url: "#",
-        icon: Settings,
-    },
-]
+interface MenuItem {
+    title: string;
+    url: string;
+    icon?: React.ElementType;
+    isActive?: boolean;
+    items?: { title: string; url: string }[];
+}
+
+export interface Vault {
+    referencecode: string;
+    user_id?: number | null;
+    name: string;
+    description?: string | null;
+    notes?: string | null;
+    created_at?: string;
+}
+
 
 export function AppSidebar() {
+    const { theme, setTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+    const {data: session} = useSession();
+    const { isMobile } = useSidebar();
+
+    const [menuItems, setMenuItems] = useState<MenuItem[]>([
+        {
+            title: "Home",
+            url: "#",
+            icon: Home,
+        },
+        {
+            title: "Dashboard",
+            url: "/dashboard",
+            icon: LayoutDashboard,
+        },
+        {
+            title: "Vaults",
+            url: "/vaults",
+            icon: Vault,
+            isActive: true,
+            items: [],
+        },
+    ]);
+
+
+    useEffect(() => {
+        if (session && session.user?.id) {
+            async function fetchVaults() {
+                const vaultData: Vault[] = await getVaults(session?.user.id);
+
+                const vaultItems = vaultData.map((vault) => ({
+                    title: vault.name, // Or another property from your Vault type
+                    url: `/vaults/${vault.referencecode}`,
+                }));
+
+                setMenuItems((prevItems) =>
+                    prevItems.map((item) =>
+                        item.title === "Vaults" ? { ...item, items: vaultItems } : item
+                    )
+                );
+            }
+            fetchVaults();
+        }
+    }, [session]);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted) return null;
+
+    const toggleTheme = () => {
+        setTheme(theme === "dark" ? "light" : "dark");
+    };
+
     return (
         <Sidebar>
             <SidebarContent>
@@ -47,20 +116,101 @@ export function AppSidebar() {
                     <SidebarGroupLabel>Application</SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
-                            {items.map((item) => (
-                                <SidebarMenuItem key={item.title}>
-                                    <SidebarMenuButton asChild>
-                                        <a href={item.url}>
-                                            <item.icon />
-                                            <span>{item.title}</span>
-                                        </a>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                            ))}
+                            {menuItems.map((item) =>
+                                item?.title === "Vaults" ? (
+                                    <Collapsible key={item.title}>
+                                        <SidebarMenuItem>
+                                            <SidebarMenuButton asChild>
+                                                <Link href={item.url}>
+                                                    {item.icon && <item.icon />}
+                                                    <span>{item.title}</span>
+                                                </Link>
+                                            </SidebarMenuButton>
+                                            {item.items?.length ? (
+                                                <>
+                                                    <CollapsibleTrigger asChild>
+                                                        <SidebarMenuAction className="data-[state=open]:rotate-90">
+                                                            <ChevronRight />
+                                                            <span className="sr-only">Toggle</span>
+                                                        </SidebarMenuAction>
+                                                    </CollapsibleTrigger>
+                                                    <CollapsibleContent>
+                                                        <SidebarMenuSub>
+                                                            {item.items?.map((subItem, index) => (
+                                                                <SidebarMenuSubItem key={index}>
+                                                                    <div className="flex items-center justify-between w-full">
+                                                                        <SidebarMenuSubButton asChild>
+                                                                            <Link href={subItem.url}>
+                                                                                <span>{subItem.title}</span>
+                                                                            </Link>
+                                                                        </SidebarMenuSubButton>
+                                                                        <DropdownMenu>
+                                                                            <DropdownMenuTrigger asChild>
+                                                                                <button type="button" className="p-2">
+                                                                                    <MoreHorizontal />
+                                                                                    <span className="sr-only">More</span>
+                                                                                </button>
+                                                                            </DropdownMenuTrigger>
+                                                                            <DropdownMenuContent
+                                                                                className="w-48"
+                                                                                side={isMobile ? "bottom" : "right"}
+                                                                                align={isMobile ? "end" : "start"}
+                                                                            >
+                                                                                <DropdownMenuItem>
+                                                                                    <Folder className="text-muted-foreground" />
+                                                                                    <span>View Project</span>
+                                                                                </DropdownMenuItem>
+                                                                                <DropdownMenuItem>
+                                                                                    <Share className="text-muted-foreground" />
+                                                                                    <span>Share Project</span>
+                                                                                </DropdownMenuItem>
+                                                                                <DropdownMenuSeparator />
+                                                                                <DropdownMenuItem>
+                                                                                    <Trash2 className="text-muted-foreground" />
+                                                                                    <span>Delete Project</span>
+                                                                                </DropdownMenuItem>
+                                                                            </DropdownMenuContent>
+                                                                        </DropdownMenu>
+                                                                    </div>
+                                                                </SidebarMenuSubItem>
+                                                            ))}
+                                                        </SidebarMenuSub>
+                                                    </CollapsibleContent>
+                                                </>
+                                            ) : null}
+
+                                        </SidebarMenuItem>
+                                    </Collapsible>
+                                ) : (
+                                    <SidebarMenuItem key={item.title}>
+                                        <SidebarMenuButton asChild>
+                                            <Link href={item.url}>
+                                                {item.icon && <item.icon />}
+                                                <span>{item.title}</span>
+                                            </Link>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                )
+                            )}
+
+
+                            {/* Dark Mode Toggle */}
+                            <SidebarMenuItem>
+                                <SidebarMenuButton onClick={toggleTheme}>
+                                    {theme === "dark" ? <Sun /> : <Moon />}
+                                    <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+
+
                         </SidebarMenu>
+                        {/*<NavVaults userid={session?.user.id} />*/}
                     </SidebarGroupContent>
                 </SidebarGroup>
             </SidebarContent>
+            <SidebarFooter>
+                <NavUser user={session ? session.user : {name: "", email: "", id: ""}} />
+            </SidebarFooter>
         </Sidebar>
-    )
+    );
 }

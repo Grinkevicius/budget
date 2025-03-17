@@ -12,7 +12,6 @@ CREATE TABLE IF NOT EXISTS categories
         || upper(substring(gen_random_uuid()::text, 1, 2))
     ),
     type text check (type IN ('Needs', 'Wants', 'Savings')),
-    color character varying,
     created_at timestamp without time zone DEFAULT now(),
     weight integer,
     CONSTRAINT categories_pkey PRIMARY KEY (referencecode)

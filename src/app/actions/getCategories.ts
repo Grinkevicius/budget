@@ -10,7 +10,7 @@ const pool = new Pool({
 export async function getCategories() {
     try {
         const result = await pool.query(`
-            SELECT referencecode, type, color FROM categories 
+            SELECT referencecode, type FROM categories 
             ORDER BY weight
         `);
         return result.rows;

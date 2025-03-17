@@ -7,7 +7,7 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false },
 });
 
-export async function getVaults(userid: string) {
+export async function getVaults(userid: string | undefined) {
     try {
         const result = await pool.query(
             `SELECT *

@@ -19,6 +19,7 @@ interface TransactionColumnProps {
     year: number;
     month: number;
     category_code: string;
+    color: string;
     reload?: boolean;
 }
 
@@ -27,6 +28,7 @@ export default function Transactions({
   year,
   month,
   category_code,
+  color,
   reload
 }: TransactionColumnProps) {
     const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -36,7 +38,6 @@ export default function Transactions({
         (async () => {
             setLoading(true);
             try {
-                console.log(category_code);
                 const data = await getTransactions(userId, year, month, category_code ? category_code : "");
                 setTransactions(data);
             } catch (error) {
@@ -57,9 +58,7 @@ export default function Transactions({
         <div className="w-full px-4 sm:px-2">
             {transactions.length > 0 ? (
                 transactions.map((t) => (
-                    <>
-                        <Transaction {...t} />
-                    </>
+                        <Transaction key={t.referencecode} color={color} {...t} />
                 ))
             ) : (
                 <div className={`flex w-full justify-center`}>

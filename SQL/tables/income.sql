@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS income
     year integer NOT NULL,
     month integer NOT NULL,
     income_amount numeric(10,2) NOT NULL,
+    note text,
     created_at timestamp without time zone DEFAULT now(),
     CONSTRAINT income_pkey PRIMARY KEY (referencecode),
     CONSTRAINT income_user_id_fkey FOREIGN KEY (user_id)
