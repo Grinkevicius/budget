@@ -30,8 +30,8 @@ export default function SignIn() {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-            <div className="p-6 bg-white shadow-lg rounded-lg">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 dark:bg-[#1c1b22]">
+            <div className="p-6 dark:bg-[#18181b] bg-white shadow-lg rounded-lg">
                 <h2 className="text-xl font-bold mb-4">Sign In</h2>
                 {error && <p className="text-red-500">{error}</p>}
                 <form onSubmit={handleLogin} className="space-y-4">

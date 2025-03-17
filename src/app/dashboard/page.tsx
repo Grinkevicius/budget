@@ -122,24 +122,20 @@ export default function BudgetDashboard() {
         <div className="mx-auto max-w-7xl px-4 w-full flex flex-col">
 
             <div className={`w-full md:inline-flex md:justify-between`}>
+                <MonthYearPicker
+                    month={month}
+                    year={year}
+                    onChangeAction={handleMonthYearChange}
+                />
 
-                    <MonthYearPicker
+                {isBudgetLoading || !budgetCode ? ("") : (
+                    <Income
+                        userid={session.user.id}
                         month={month}
                         year={year}
-                        onChangeAction={handleMonthYearChange}
                     />
-
-                    {isBudgetLoading || !budgetCode ? ("") : (
-                        <Income
-                            userid={session.user.id}
-                            month={month}
-                            year={year}
-                        />
-                    )}
-
-
+                )}
             </div>
-
 
             {isBudgetLoading ? (
                 <Spinner />
@@ -151,7 +147,6 @@ export default function BudgetDashboard() {
             ) : (
                 <>
                     <div className="grid grid-cols-3 md:grid-cols-3 p-2">
-
                         {categories.map((cat) => {
                             return (
                                 <div key={cat.referencecode} className="flex flex-col">
@@ -177,7 +172,6 @@ export default function BudgetDashboard() {
                                 </div>
                             );
                         })}
-
                     </div>
 
                     <div className={`flex flex-col w-full sm:hidden`}>
@@ -193,10 +187,7 @@ export default function BudgetDashboard() {
                             reload={transactionsReload}
                         />
                     </div>
-
                 </>
-
-
             )}
 
             {open && (

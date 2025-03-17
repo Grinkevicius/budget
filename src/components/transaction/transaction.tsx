@@ -18,6 +18,7 @@ export default function Transaction({
     category_code: string;
     color: string;
 }) {
+
     const { theme } = useTheme();
     const formattedDate =
         transaction_date instanceof Date
@@ -46,7 +47,7 @@ export default function Transaction({
 
                     <Badge
                         variant="outline"
-                        className="px-3 py-1 font-thin text-black dark:text-white uppercase rounded-lg shadow-sm"
+                        className="px-3 py-1 font-light text-black dark:text-white uppercase rounded-lg shadow-sm"
                         style={{ backgroundColor: color !== "" ? color : getColor(category_code) }}
                     >
                         ${Number(amount).toFixed(0)}
