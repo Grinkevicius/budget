@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getCategoryData } from "@/app/actions/getCategoryData";
+import { getCategoryData } from "@/actions/getCategoryData";
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Skeleton } from "@/components/ui/skeleton";

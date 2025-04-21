@@ -1,7 +1,7 @@
 import {createSlice, createAsyncThunk, PayloadAction} from '@reduxjs/toolkit';
-import { getTransactions } from '@/app/actions/getTransactions';
-import { updateTransaction } from '@/app/actions/updateTransaction';
-import {addTransaction} from "@/app/actions/addTransaction";
+import { getTransactions } from '@/actions/getTransactions';
+import { updateTransaction } from '@/actions/updateTransaction';
+import {addTransaction} from "@/actions/addTransaction";
 
 export interface Transaction {
     referencecode: string;

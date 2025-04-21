@@ -29,9 +29,9 @@ import Link from "next/link";
 import { NavUser } from "@/components/sidebar/user";
 import {useSession} from "next-auth/react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
-import {getVaults} from "@/app/actions/get/getVaults";
+import {getVaults} from "@/actions/get/getVaults";
 import {DropdownMenuSeparator, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
-import {useVault} from "@/app/contexts/VaultContext";
+import {useVault} from "@/contexts/VaultContext";
 import { useRouter } from 'next/navigation';
 
 

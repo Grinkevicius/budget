@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, ChangeEvent } from "react";
-import { getUserIncome, updateUserIncome } from "@/app/actions/income_actions";
+import { getUserIncome, updateUserIncome } from "@/actions/income_actions";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 

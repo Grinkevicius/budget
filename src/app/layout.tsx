@@ -9,8 +9,8 @@ import Header from "@/components/navbar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ThemeProvider } from "next-themes";
-import { AlertProvider } from '@/app/contexts/AlertContext';
-import { VaultProvider } from "@/app/contexts/VaultContext";
+import { AlertProvider } from '@/contexts/AlertContext';
+import { VaultProvider } from "@/contexts/VaultContext";
 
 function AuthenticatedLayout({ children } : { children: React.ReactNode }) {
     const { data: session, status } = useSession();

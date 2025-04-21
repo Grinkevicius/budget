@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { getVault } from "@/app/actions/get/getVault";
+import { getVault } from "@/actions/get/getVault";
 import { useSession } from "next-auth/react";
 import MobileBottomBar from "@/components/mobile/mobileBottomBar";
 import Breadcrumbs from "@/components/breadcrumbs";
 import type { BreadcrumbItem } from "@/components/breadcrumbs";
-import { useVault } from "@/app/contexts/VaultContext";
+import { useVault } from "@/contexts/VaultContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 

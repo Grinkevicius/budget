@@ -24,7 +24,7 @@ import {
     useSidebar,
 } from "@/components/ui/sidebar"
 import {useEffect, useState} from "react";
-import {getVaults} from "@/app/actions/get/getVaults";
+import {getVaults} from "@/actions/get/getVaults";
 import {Vault} from "@/app/vaults/page";
 import Link from "next/link";
 

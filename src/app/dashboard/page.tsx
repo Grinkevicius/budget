@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, memo, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { useAlert } from '@/app/contexts/AlertContext';
+import { useAlert } from '@/contexts/AlertContext';
 
 // Components
 import Spinner from "@/components/ui/spinner";
@@ -17,12 +17,12 @@ import MobileBottomBar from "@/components/mobile/mobileBottomBar";
 import Transactions from "@/components/transaction/transactions";
 
 // Actions & Types
-import { getCategories } from "@/app/actions/getCategories";
-import { createBudget } from "@/app/actions/create/createBudget";
+import { getCategories } from "@/actions/getCategories";
+import { createBudget } from "@/actions/create/createBudget";
 import {clearTransactions, Transaction} from "@/store/transactionsSlice";
 
 // Add this import
-import { getBudgetForMonth } from "@/app/actions/getBudget";
+import { getBudgetForMonth } from "@/actions/getBudget";
 import {useAppDispatch} from "@/store/hooks";
 import {PlusCircle} from "lucide-react";
 

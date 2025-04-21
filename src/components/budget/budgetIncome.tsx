@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react";
-import {getBudgetIncome} from "@/app/actions/get/getBudgetIncome";
-import {createIncomeEntry} from "@/app/actions/create/createIncomeEntry";
-import {deleteIncomeEntry} from "@/app/actions/delete/deleteIncomeEntry";
+import {getBudgetIncome} from "@/actions/get/getBudgetIncome";
+import {createIncomeEntry} from "@/actions/create/createIncomeEntry";
+import {deleteIncomeEntry} from "@/actions/delete/deleteIncomeEntry";
 import {Button} from "@/components/ui/button";
 import {
     Dialog,

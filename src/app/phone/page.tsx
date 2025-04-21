@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Camera, CameraResultType, CameraSource, Photo } from '@capacitor/camera';
-import {useAlert} from '@/app/contexts/AlertContext';
+import {useAlert} from '@/contexts/AlertContext';
 
 const CameraCapture: React.FC = () => {
     const [photo, setPhoto] = useState<string | null>(null);

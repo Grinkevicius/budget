@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, ChangeEvent } from "react";
-import { getSpendingAllocation, updateSpendingAllocation } from "@/app/actions/settings_allocations";
+import { getSpendingAllocation, updateSpendingAllocation } from "@/actions/settings_allocations";
 import Swal from "sweetalert2";
 import withReactContent from "sweetalert2-react-content";
 

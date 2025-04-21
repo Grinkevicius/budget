@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { getVaults } from "@/app/actions/get/getVaults";
+import { getVaults } from "@/actions/get/getVaults";
 import { useSession } from "next-auth/react";
 import MobileBottomBar from "@/components/mobile/mobileBottomBar";
 import Breadcrumbs from "@/components/breadcrumbs";
@@ -9,7 +9,7 @@ import type { BreadcrumbItem } from "@/components/breadcrumbs";
 import {Card} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import {useVault} from "@/app/contexts/VaultContext";
+import {useVault} from "@/contexts/VaultContext";
 
 export interface Vault {
     referencecode: string;        // TEXT PRIMARY KEY

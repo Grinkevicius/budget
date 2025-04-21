@@ -15,7 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { updateTransaction } from "@/app/actions/updateTransaction";
+import { updateTransaction } from "@/actions/updateTransaction";
 
 interface Transaction {
     referencecode: string;
