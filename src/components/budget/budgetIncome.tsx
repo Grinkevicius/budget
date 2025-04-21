@@ -18,6 +18,7 @@ type Props = {
     userid: string;
     month: number;
     year: number;
+    onIncomeChange?: () => void;
 };
 
 export type Income = {
@@ -29,6 +30,7 @@ export default function BudgetIncome({
      userid,
      month,
      year,
+     onIncomeChange,
  }: Props) {
     const [totalIncome, setTotalIncome] = useState<number>(0);
     const [income, setIncome] = useState<Income[]>([]);
@@ -57,6 +59,7 @@ export default function BudgetIncome({
             });
             setIncome((prev) => [...prev, newEntry]);
             setTotalIncome((prev) => prev + newAmount);
+            onIncomeChange?.(); // Call the callback after successful add
         } catch (error) {
             console.error("Error adding income:", error);
         }
@@ -68,7 +71,10 @@ export default function BudgetIncome({
             setIncome((prev) => prev.filter((inc) => inc.referencecode !== referencecode));
             setTotalIncome((prev) => prev - removedEntry.income_amount);
 
-            deleteIncomeEntry({userId: userid, referenceCode: removedEntry.referencecode}).then();
+            deleteIncomeEntry({userId: userid, referenceCode: removedEntry.referencecode})
+                .then(() => {
+                    onIncomeChange?.(); // Call the callback after successful delete
+                });
         }
     }
 

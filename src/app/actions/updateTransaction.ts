@@ -1,12 +1,12 @@
 "use server";
 
-import { pool } from "@/lib/db"; // Make sure you have a pg Pool exported from this module
+import { pool } from "@/lib/db";
 
 interface UpdateTransactionData {
     referencecode: string;
     description: string;
     amount: number;
-    transaction_date: string; // Format: YYYY-MM-DD
+    transaction_date: string;
     note?: string;
     is_recurring: boolean;
 }

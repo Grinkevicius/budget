@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useEffect, useState } from "react";
 import {
     Vault,
@@ -33,13 +31,18 @@ import {useSession} from "next-auth/react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import {getVaults} from "@/app/actions/get/getVaults";
 import {DropdownMenuSeparator, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
+import {useVault} from "@/app/contexts/VaultContext";
+import { useRouter } from 'next/navigation';
+
 
 interface MenuItem {
     title: string;
     url: string;
     icon?: React.ElementType;
     isActive?: boolean;
-    items?: { title: string; url: string }[];
+    items?: {
+        referencecode: string;
+        title: string; url: string }[];
 }
 
 export interface Vault {
@@ -55,6 +58,8 @@ export interface Vault {
 export function AppSidebar() {
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
+    const { setSelectedVaultRef } = useVault();
+    const router = useRouter();
     const {data: session} = useSession();
     const { isMobile } = useSidebar();
 
@@ -76,7 +81,20 @@ export function AppSidebar() {
             isActive: true,
             items: [],
         },
+        {
+            title: "Phone",
+            url: "/phone",
+            icon: Vault,
+            isActive: true,
+            items: [],
+        },
     ]);
+
+    async function handleVault(referencecode: string) {
+        setSelectedVaultRef(referencecode);
+        await Promise.resolve();
+        router.push(`/vaults/manage`);
+    }
 
 
     useEffect(() => {
@@ -84,9 +102,11 @@ export function AppSidebar() {
             async function fetchVaults() {
                 const vaultData: Vault[] = await getVaults(session?.user.id);
 
+
                 const vaultItems = vaultData.map((vault) => ({
                     title: vault.name, // Or another property from your Vault type
-                    url: `/vaults/${vault.referencecode}`,
+                    url: `/vaults/manage`,
+                    referencecode: vault.referencecode,
                 }));
 
                 setMenuItems((prevItems) =>
@@ -140,10 +160,16 @@ export function AppSidebar() {
                                                                 <SidebarMenuSubItem key={index}>
                                                                     <div className="flex items-center justify-between w-full">
                                                                         <SidebarMenuSubButton asChild>
-                                                                            <Link href={subItem.url}>
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    setSelectedVaultRef(subItem.referencecode);
+                                                                                    router.push('/vaults/manage');
+                                                                                }}
+                                                                            >
                                                                                 <span>{subItem.title}</span>
-                                                                            </Link>
+                                                                            </button>
                                                                         </SidebarMenuSubButton>
+
                                                                         <DropdownMenu>
                                                                             <DropdownMenuTrigger asChild>
                                                                                 <button type="button" className="p-2">

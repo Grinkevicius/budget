@@ -9,36 +9,33 @@ const pool = new Pool({
 
 export async function getTransactions(userId: string, year: number, month: number, category_code: string) {
     try {
-        let result;
+        let query = `
+            SELECT 
+                t.referencecode, 
+                t.description, 
+                t.amount, 
+                TO_CHAR(t.transaction_date, 'YYYY-MM-DD') as transaction_date, 
+                c.type, 
+                t.category_code, 
+                t.is_recurring
+            FROM transactions t
+            JOIN categories c ON t.category_code = c.referencecode
+            JOIN budgets b ON t.budget_code = b.referencecode
+            WHERE b.user_id = $1
+            AND b.year = $2
+            AND b.month = $3
+        `;
+
+        const params = [userId, year, month];
+
         if (category_code !== "") {
-            result = await pool.query(
-                `SELECT t.referencecode, t.description, t.amount, t.transaction_date, c.type, t.category_code, t.is_recurring
-             FROM transactions t
-                      JOIN categories c ON t.category_code = c.referencecode
-                      JOIN budgets b ON t.budget_code = b.referencecode
-             WHERE b.user_id = $1
-               AND b.year = $2
-               AND b.month = $3
-               AND t.category_code = $4
-             ORDER BY t.transaction_date desc`,
-                [userId, year, month, category_code]
-            );
-
-        } else {
-            result = await pool.query(
-                `SELECT t.referencecode, t.description, t.amount, t.transaction_date, c.type, t.category_code, t.is_recurring
-             FROM transactions t
-                      JOIN categories c ON t.category_code = c.referencecode
-                      JOIN budgets b ON t.budget_code = b.referencecode
-             WHERE b.user_id = $1
-               AND b.year = $2
-               AND b.month = $3
-             ORDER BY t.transaction_date desc `,
-                [userId, year, month]
-            );
-
+            query += ` AND t.category_code = $4`;
+            params.push(category_code);
         }
 
+        query += ` ORDER BY t.transaction_date desc`;
+
+        const result = await pool.query(query, params);
         return result.rows;
     } catch {
         return [];

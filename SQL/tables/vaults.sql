@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS vaults
     user_id BIGINT,
     name TEXT NOT NULL,
     description TEXT,
+    target INT,
+    image TEXT,
     notes TEXT,
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT now(),
 

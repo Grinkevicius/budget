@@ -1,56 +1,211 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, memo, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Spinner from "@/components/ui/spinner"
-import { getCategories } from "@/app/actions/getCategories";
-import { getBudgetForMonth } from "@/app/actions/getBudget";
+import { useTheme } from "next-themes";
+import { useAlert } from '@/app/contexts/AlertContext';
+
+// Components
+import Spinner from "@/components/ui/spinner";
 import CategoryTracker from "@/components/categoryTracker";
 import { MonthYearPicker } from "@/components/datePicker";
 import { Button } from "@/components/ui/button";
 import { AddTransactionDialog } from "@/components/transaction/addTransaction";
-import {createBudget} from "@/app/actions/create/createBudget";
-import Income from "@/components/budget/budgetIncome"
-import { Capacitor } from "@capacitor/core";
+import Income from "@/components/budget/budgetIncome";
 import MobileBottomBar from "@/components/mobile/mobileBottomBar";
 import Transactions from "@/components/transaction/transactions";
-import {useTheme} from "next-themes";
 
-interface Transaction {
+// Actions & Types
+import { getCategories } from "@/app/actions/getCategories";
+import { createBudget } from "@/app/actions/create/createBudget";
+import {clearTransactions, Transaction} from "@/store/transactionsSlice";
+
+// Add this import
+import { getBudgetForMonth } from "@/app/actions/getBudget";
+import {useAppDispatch} from "@/store/hooks";
+import {PlusCircle} from "lucide-react";
+
+// Types
+interface Category {
     referencecode: string;
-    description: string;
-    amount: number;
-    transaction_date: string;
-    category_code: string;
-    is_recurring: boolean;
+    type: string;
 }
 
-function isNativeMobileApp(): boolean {
-    return Capacitor.isNativePlatform();
+interface DashboardState {
+    categories: Category[];
+    budgetCode: string | null;
+    isBudgetLoading: boolean;
+    trackerReloads: Record<string, boolean>;
+    categoryReloads: Record<string, boolean>;
+    isAddTransactionOpen: boolean;
+    isFetchingBudget: boolean; // Added this state
 }
 
-function getPlatform() {
-    return Capacitor.getPlatform();
+interface CategoryListProps {
+    categories: Category[];
+    userId: string;
+    year: number;
+    month: number;
+    trackerReloads: Record<string, boolean>;
+    categoryReloads: Record<string, boolean>;
+    getColor: (category_code: string) => string;
 }
 
-console.log(isNativeMobileApp());
-console.log(getPlatform());
+const CategoryList: React.FC<CategoryListProps> = memo(({
+    categories,
+    userId,
+    year,
+    month,
+    trackerReloads,
+    categoryReloads,
+    getColor
+}) => (
+    <div className="grid grid-cols-3 md:grid-cols-3 p-2">
+        {categories.map((cat) => (
+            <div key={cat.referencecode} className="flex flex-col">
+                <CategoryTracker
+                    category={cat.referencecode}
+                    userId={userId}
+                    year={year}
+                    month={month}
+                    color={getColor(cat.referencecode)}
+                    reload={trackerReloads[cat.referencecode]}
+                />
+                <div className="hidden w-full sm:flex">
+                    <Transactions
+                        userId={userId}
+                        year={year}
+                        month={month}
+                        category_code={cat.referencecode}
+                        color={getColor(cat.referencecode)}
+                        reload={categoryReloads[cat.referencecode]}
+                    />
+                </div>
+            </div>
+        ))}
+    </div>
+));
 
+CategoryList.displayName = 'CategoryList';
 
-export default function BudgetDashboard() {
-    const {data: session, status} = useSession();
+const MobileTransactions = memo(({ userId, year, month, reload }: {
+    userId: string;
+    year: number;
+    month: number;
+    reload?: boolean;
+}) => (
+    <div className="flex flex-col w-full sm:hidden">
+        <div className="px-6 text-gray-500">Expenses:</div>
+        <Transactions
+            userId={userId}
+            year={year}
+            month={month}
+            category_code=""
+            color=""
+            reload={reload}
+        />
+    </div>
+));
+
+MobileTransactions.displayName = 'MobileTransactions';
+
+const BudgetDashboard: React.FC = () => {
+    const { showAlert } = useAlert();
+    const dispatch = useAppDispatch();
+    const { data: session, status } = useSession();
     const router = useRouter();
     const { theme } = useTheme();
 
-    const [categories, setCategories] = useState<{referencecode: string; type: string}[]>([]);
-    const [budgetCode, setBudgetCode] = useState<string | null>(null);
-    const [month, setMonth] = useState<number>(new Date().getMonth() + 1);
-    const [year, setYear] = useState<number>(new Date().getFullYear());
-    const [isBudgetLoading, setIsBudgetLoading] = useState<boolean>(false);
-    const [trackerReloads, setTrackerReloads] = useState<{ [key: string]: boolean }>({});
-    const [open, setOpen] = useState(false);
-    const [transactionsReload, setTransactionsReload] = useState(false);
+    const [currentDate, setCurrentDate] = useState({
+        month: new Date().getMonth() + 1,
+        year: new Date().getFullYear(),
+    });
+
+    const [state, setState] = useState<DashboardState>({
+        categories: [],
+        budgetCode: null,
+        isBudgetLoading: false,
+        trackerReloads: {},
+        categoryReloads: {},
+        isAddTransactionOpen: false,
+        isFetchingBudget: false,
+    });
+
+    const getColor = useCallback((category_code: string): string => {
+        const colors = {
+            "CAT2025022222030415": theme === "dark" ? "#243642" : "rgb(219, 234, 254)",
+            "CAT20250222220304D1": theme === "dark" ? "#387478" : "rgb(254, 249, 195)",
+            "CAT202502222203044D": theme === "dark" ? "#629584" : "rgb(220, 252, 231)",
+        };
+        return colors[category_code as keyof typeof colors] || "#FFFFFF";
+    }, [theme]);
+
+    const handleMonthYearChange = useCallback((month: number, year: number) => {
+        dispatch(clearTransactions());
+        setCurrentDate({ month, year });
+    }, [dispatch]);
+
+
+    const handleCreateBudget = useCallback(async () => {
+        if (!session?.user?.id) return;
+
+        setState(prev => ({ ...prev, isBudgetLoading: true }));
+        try {
+            const result = await createBudget(
+                session.user.id,
+                currentDate.year,
+                currentDate.month
+            );
+            setState(prev => ({
+                ...prev,
+                budgetCode: result?.referencecode || null,
+            }));
+        } catch (error) {
+            console.error("Failed to create budget:", error);
+            showAlert({
+                type: 'error',
+                title: 'Error',
+                description: 'Something went wrong'
+            });
+
+        } finally {
+            showAlert({
+                type: 'success',
+                title: 'Success',
+                description: 'Operation completed successfully'
+            });
+
+
+            setState(prev => ({ ...prev, isBudgetLoading: false }));
+        }
+    }, [session?.user?.id, currentDate.year, currentDate.month]);
+
+    useEffect(() => {
+        async function fetchBudget() {
+            if (!session?.user?.id) return;
+
+            setState(prev => ({ ...prev, isFetchingBudget: true }));
+            try {
+                const data = await getBudgetForMonth(
+                    session.user.id,
+                    currentDate.year,
+                    currentDate.month
+                );
+                setState(prev => ({
+                    ...prev,
+                    budgetCode: data ? data.referencecode : null,
+                }));
+            } catch (error) {
+                console.error('Failed to fetch budget:', error);
+                // Add toast notification here
+            } finally {
+                setState(prev => ({ ...prev, isFetchingBudget: false }));
+            }
+        }
+
+        fetchBudget();
+    }, [currentDate.year, currentDate.month, session?.user?.id]);
 
     useEffect(() => {
         if (status === "unauthenticated") {
@@ -60,155 +215,132 @@ export default function BudgetDashboard() {
 
     useEffect(() => {
         async function fetchCategories() {
-            const data = await getCategories();
-            setCategories(data);
-            const initialReloads: { [key: string]: boolean } = {};
-            data.forEach((cat: { referencecode: string }) => {
-                initialReloads[cat.referencecode] = false;
-            });
-            setTrackerReloads(initialReloads);
-        }
+            try {
+                const data = await getCategories();
+                const initialReloads = data.reduce((acc, cat) => ({
+                    ...acc,
+                    [cat.referencecode]: false
+                }), {});
 
-        fetchCategories().then();
-    }, []);
-
-    useEffect(() => {
-        async function fetchBudget() {
-            if (session?.user) {
-                setIsBudgetLoading(true);
-                const data = await getBudgetForMonth(session.user.id, year, month);
-                setBudgetCode(data ? data.referencecode : "");
-                setIsBudgetLoading(false);
+                setState(prev => ({
+                    ...prev,
+                    categories: data,
+                    trackerReloads: initialReloads,
+                    categoryReloads: initialReloads,
+                }));
+            } catch (error) {
+                console.error("Failed to fetch categories:", error);
+                // Add toast notification here
             }
         }
 
-        fetchBudget().then();
-    }, [year, month, session]);
-
-    function getColor(category_code: string) {
-        switch (category_code) {
-            case "CAT2025022222030415": //NEEDS
-                return theme === "dark" ? "#243642" : "rgb(219, 234, 254)";
-            case "CAT20250222220304D1": //WANTS
-                return theme === "dark" ? "#387478" : "rgb(254, 249, 195)";
-            case "CAT202502222203044D": //SAVINGS
-                return theme === "dark" ? "#629584" : "rgb(220, 252, 231)";
-            default:
-                return "#FFFFFF";
+        if (session?.user) {
+            fetchCategories();
         }
-    }
+    }, [session]);
 
-    const handleCreate = async () => {
-        const budgetCode = await createBudget(session ? session.user.id : 0, year, month)
-        setBudgetCode(budgetCode ? budgetCode.referencecode : "");
-    }
-
-    const refreshCategoryTrackerAction = (categoryCode: string) => {
-        setTrackerReloads((prev) => ({
+    const handleIncomeChange = useCallback(() => {
+        setState(prev => ({
             ...prev,
-            [categoryCode]: !prev[categoryCode],
+            trackerReloads: Object.keys(prev.trackerReloads).reduce((acc, key) => ({
+                ...acc,
+                [key]: !prev.trackerReloads[key]
+            }), {})
         }));
-    };
-
-    const handleMonthYearChange = (newMonth: number, newYear: number) => {
-        setMonth(newMonth);
-        setYear(newYear);
-    };
-
+    }, []);
 
     if (!session) return null;
 
     return (
-        <div className="mx-auto max-w-7xl px-4 w-full flex flex-col">
+        <>
+            <div className="mx-auto max-w-7xl px-4 w-full flex flex-col">
+                <div className="w-full md:inline-flex md:justify-between">
+                    <MonthYearPicker
+                        month={currentDate.month}
+                        year={currentDate.year}
+                        onChangeAction={handleMonthYearChange}
+                    />
 
-            <div className={`w-full md:inline-flex md:justify-between`}>
-                <MonthYearPicker
-                    month={month}
-                    year={year}
-                    onChangeAction={handleMonthYearChange}
-                />
+                    <Suspense fallback={<Spinner />}>
+                        {!state.isFetchingBudget && !state.isBudgetLoading && state.budgetCode && (
+                            <Income
+                                userid={session.user.id}
+                                month={currentDate.month}
+                                year={currentDate.year}
+                                onIncomeChange={handleIncomeChange}
+                            />
+                        )}
+                    </Suspense>
+                </div>
 
-                {isBudgetLoading || !budgetCode ? ("") : (
-                    <Income
-                        userid={session.user.id}
-                        month={month}
-                        year={year}
+                {state.isFetchingBudget || state.isBudgetLoading ? (
+                    <Spinner />
+                ) : !state.budgetCode ? (
+                    <div className="w-full text-center">
+                        <p className="pb-2">No budget code found.</p>
+                        <Button
+                            className="dark:bg-[#18181b]"
+                            variant="outline"
+                            onClick={handleCreateBudget}
+                        >
+                            Create
+                        </Button>
+                    </div>
+                ) : (
+                    <>
+                        <CategoryList
+                            categories={state.categories}
+                            userId={session.user.id}
+                            year={currentDate.year}
+                            month={currentDate.month}
+                            trackerReloads={state.trackerReloads}
+                            categoryReloads={state.categoryReloads}
+                            getColor={getColor}
+                        />
+
+                        {/* Mobile View */}
+                        <MobileTransactions
+                            userId={session.user.id}
+                            year={currentDate.year}
+                            month={currentDate.month}
+                            reload={state.categoryReloads['all']}
+                        />
+                    </>
+                )}
+
+                {state.isAddTransactionOpen && (
+                    <AddTransactionDialog
+                        userId={session.user.id}
+                        budgetCode={state.budgetCode!}
+                        categories={state.categories}
+                        onCloseAction={(transaction?: Transaction) => {
+                            setState(prev => ({ ...prev, isAddTransactionOpen: false }));
+                            if (transaction) {
+                                setState(prev => ({
+                                    ...prev,
+                                    trackerReloads: {
+                                        ...prev.trackerReloads,
+                                        [transaction.category_code]: !prev.trackerReloads[transaction.category_code],
+                                    },
+                                }));
+                            }
+                        }}
                     />
                 )}
-            </div>
 
-            {isBudgetLoading ? (
-                <Spinner />
-            ) : !budgetCode ? (
-                <div className={`w-full text-center`}>
-                    <p className={`pb-2`}>No budget code found.</p>
-                    <Button className={`dark:bg-[#18181b]`} variant="outline" onClick={handleCreate}>Create</Button>
+                <div  className="flex justify-end p-2">
+                    <PlusCircle onClick={() => setState(prev => ({ ...prev, isAddTransactionOpen: true })) } className="w-6 h-6 cursor-pointer" />
                 </div>
-            ) : (
-                <>
-                    <div className="grid grid-cols-3 md:grid-cols-3 p-2">
-                        {categories.map((cat) => {
-                            return (
-                                <div key={cat.referencecode} className="flex flex-col">
-                                    <CategoryTracker
-                                        category={cat.referencecode}
-                                        userId={session.user.id}
-                                        year={year}
-                                        month={month}
-                                        color={getColor(cat.referencecode)}
-                                        reload={trackerReloads[cat.referencecode]}
-                                    />
 
-                                    <div className="hidden w-full sm:flex">
-                                        <Transactions
-                                            userId={session.user.id}
-                                            year={year}
-                                            month={month}
-                                            category_code={cat.referencecode}
-                                            color={getColor(cat.referencecode)}
-                                            reload={transactionsReload}
-                                        />
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
 
-                    <div className={`flex flex-col w-full sm:hidden`}>
-                        <div className={`px-6 text-gray-500`}>
-                            Expenses:
-                        </div>
-                        <Transactions
-                            userId={session.user.id}
-                            year={year}
-                            month={month}
-                            category_code={""}
-                            color={""}
-                            reload={transactionsReload}
-                        />
-                    </div>
-                </>
-            )}
-
-            {open && (
-                <AddTransactionDialog
-                    userId={session.user.id}
-                    budgetCode={budgetCode!}
-                    categories={categories}
-                    onCloseAction={(addedTransaction? : Transaction) => {
-                        setOpen(false);
-                        if (addedTransaction) {
-                            refreshCategoryTrackerAction(addedTransaction.category_code);
-                            setTransactionsReload(prev => !prev);
-                        }
-                    }}
-
+                <div className="h-[60px]" />
+                <MobileBottomBar
+                    onCreate={() => setState(prev => ({ ...prev, isAddTransactionOpen: true }))}
+                    session={session}
                 />
-            )}
-
-            <div className={`h-[60px]`}></div>
-            <MobileBottomBar onCreate={() => setOpen(true)} session={session} />
-
-        </div>
+            </div>
+        </>
     );
-}
+};
+
+export default memo(BudgetDashboard);

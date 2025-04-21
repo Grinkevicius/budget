@@ -14,8 +14,15 @@ export async function addTransaction(data: {
     const query = `
     INSERT INTO transactions (user_id, budget_code, category_code, description, amount, transaction_date, is_recurring)
     VALUES ($1, $2, $3, $4, $5, $6, $7)
-    RETURNING *;
-  `;
+    RETURNING
+        referencecode,
+        description,
+        amount,
+        TO_CHAR(transaction_date, 'YYYY-MM-DD') as transaction_date,
+        category_code,
+        is_recurring;
+    `;
+
     const values = [
         data.userId,
         data.budgetCode,

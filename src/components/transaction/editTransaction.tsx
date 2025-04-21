@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useAppDispatch } from "@/store/hooks";
+import { updateTransactionThunk } from "@/store/transactionsSlice";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -31,10 +33,10 @@ interface EditTransactionProps {
 }
 
 export function EditTransaction({
-                                    transaction,
-                                    onCloseAction,
-                                    refreshTransactions,
-                                }: EditTransactionProps) {
+    transaction,
+    onCloseAction
+}: EditTransactionProps) {
+    const dispatch = useAppDispatch();
     const [description, setDescription] = useState(transaction.description);
     const [amount, setAmount] = useState(transaction.amount);
     const initialDate = new Date(transaction.transaction_date)
@@ -49,16 +51,18 @@ export function EditTransaction({
             description,
             amount,
             transaction_date: transactionDate,
-            category_code: transaction.category_code,
+            note: "", // Add if needed
             is_recurring: isRecurring,
+            category_code: transaction.category_code // Add this line
         };
 
         try {
-            const result = await updateTransaction(updatedTransaction);
-            if (refreshTransactions) {
-                await refreshTransactions();
-            }
-            onCloseAction(result);
+            await dispatch(updateTransactionThunk({ 
+                data: updatedTransaction,
+                categoryCode: transaction.category_code 
+            })).unwrap();
+            
+            onCloseAction(updatedTransaction);
         } catch (error) {
             console.error("Error updating transaction:", error);
         }

@@ -7,11 +7,11 @@ const pool = new Pool({
     ssl: { rejectUnauthorized: false },
 });
 
-export async function getVault(userid: string, referenceCode: string) {
+export async function getVault(userid: string, referenceCode: string | null) {
     try {
         const result = await pool.query(
             `SELECT *
-             FROM vaults
+             FROM getvault($1, $2)
              WHERE user_id = $1 AND referenceCode = $2
              `,
             [userid, referenceCode]

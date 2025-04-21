@@ -13,17 +13,15 @@ export default function Transaction({
 }: {
     description: string;
     amount: number;
-    transaction_date: Date | string;
+    transaction_date: string;
     is_recurring: boolean;
     category_code: string;
     color: string;
 }) {
 
     const { theme } = useTheme();
-    const formattedDate =
-        transaction_date instanceof Date
-            ? transaction_date.toLocaleDateString()
-            : new Date(transaction_date).toLocaleDateString();
+    const date = new Date(transaction_date);
+    const formattedDate = date.toLocaleDateString();
 
     function getColor(category_code: string) {
         switch (category_code) {

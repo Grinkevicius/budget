@@ -8,13 +8,14 @@ import Breadcrumbs from "@/components/breadcrumbs";
 import type { BreadcrumbItem } from "@/components/breadcrumbs";
 import {Card} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
-import {Avatar, AvatarImage} from "@/components/ui/avatar";
 import { useRouter } from "next/navigation";
+import {useVault} from "@/app/contexts/VaultContext";
 
 export interface Vault {
     referencecode: string;        // TEXT PRIMARY KEY
     user_id?: number | null;      // BIGINT
     name: string;                 // TEXT NOT NULL
+    image: string;                // TEXT
     description?: string | null;  // TEXT
     notes?: string | null;        // TEXT
     created_at?: string;          // TIMESTAMP WITHOUT TIME ZONE
@@ -29,6 +30,7 @@ export default function Vaults() {
     const router = useRouter();
     const { data: session } = useSession();
     const [vault, setVault] = useState<Vault[]>([]);
+    const { setSelectedVaultRef } = useVault();
 
     useEffect(() => {
         async function fetchVaults() {
@@ -41,46 +43,63 @@ export default function Vaults() {
     }, [session]);
 
     function buildVaults() {
-        return vault.map((v) => (
-            <Card key={v.referencecode} className={`p-2 m-1 flex flex-col`}>
-                <div className={`flex justify-between items-center`}>
-                    <div className={`inline-flex justify-between`}>
-                        <div className={`flex w-[70px] justify-center`}>
-                            <Avatar className="w-10 h-10">
-                                <AvatarImage
-                                    src="https://www.gravatar.com/avatar/?d=mp"
-                                    alt={"User"}
-                                />
-                            </Avatar>
-                        </div>
+        return vault.map((v) => {
+            console.log(v.image);
+            return (
+            <Card key={v.referencecode} className="relative h-48 overflow-hidden group">
+                <div
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                    style={{
+                        backgroundImage: `url('${v.image ? v.image : 'https://www.thedaviscompanies.com/wp-content/uploads/2018/05/Union-Trust-Bank-Vault-Cropped.jpg'}')`,
+                        backgroundBlendMode: 'overlay'
+                    }}
+                />
+                <div className="absolute inset-0 bg-black/50 transition-opacity group-hover:bg-black/40"/>
 
-                        <div key={v.referencecode} className={`flex items-center`}>
-                            { v.name }
-                        </div>
+                <div className="relative h-full p-6 flex flex-col justify-between">
+                    <div className="space-y-2">
+                        <h3 className="text-xl font-semibold text-white">
+                            {v.name}
+                        </h3>
+                        {v.description && (
+                            <p className="text-sm text-gray-200">
+                                {v.description}
+                            </p>
+                        )}
                     </div>
-                    <Button onClick={() => router.push(`/vaults/${v.referencecode}/manage`)} variant="outline">
-                        Manage
-                    </Button>
-                </div>
 
+                    <div className="flex justify-end">
+                        <Button
+                            onClick={() => {
+                                setSelectedVaultRef(v.referencecode);
+                                router.push('/vaults/manage');
+                            }}
+                            variant="outline"
+                            className="w-fit bg-white/10 hover:bg-white/20 border-white/20 text-white"
+                        >
+                            Manage
+                        </Button>
+                    </div>
+                </div>
             </Card>
 
-        ));
+        )});
     }
 
     if (!session) return null;
 
     return (
         <>
-
-            <div className="mx-auto max-w-7xl px-4 w-full flex flex-col">
+            <div className="">
                 <Breadcrumbs items={breadcrumbs} />
-                {buildVaults()}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {buildVaults()}
+                </div>
             </div>
-
 
             <div className="h-[60px]" />
             <MobileBottomBar session={session} />
         </>
     );
+
 }

@@ -1,18 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { getTransactions } from "@/app/actions/getTransactions";
+import { useEffect } from "react";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {clearTransactions, fetchTransactions} from "@/store/transactionsSlice";
 import Transaction from "@/components/transaction/transaction";
 import Spinner from "@/components/ui/spinner";
-
-interface Transaction {
-    referencecode: string;
-    description: string;
-    amount: number;
-    transaction_date: string;
-    category_code: string;
-    is_recurring: boolean;
-}
 
 interface TransactionColumnProps {
     userId: string;
@@ -24,41 +16,41 @@ interface TransactionColumnProps {
 }
 
 export default function Transactions({
-  userId,
-  year,
-  month,
-  category_code,
-  color,
-  reload
+    userId,
+    year,
+    month,
+    category_code,
+    color,
+    reload
 }: TransactionColumnProps) {
-    const [transactions, setTransactions] = useState<Transaction[]>([]);
-    const [loading, setLoading] = useState(true);
+    const dispatch = useAppDispatch();
+    const categoryKey = category_code || 'all';
+    const transactionsList = useAppSelector(state =>
+        state.transactions.transactions[categoryKey]
+    ) || {
+        items: [],
+        loading: false,
+        error: null
+    };
 
     useEffect(() => {
-        (async () => {
-            setLoading(true);
-            try {
-                const data = await getTransactions(userId, year, month, category_code ? category_code : "");
-                setTransactions(data);
-            } catch (error) {
-                console.error("Error fetching transactions:", error);
-            } finally {
-                setLoading(false);
-            }
-        })();
-    }, [userId, year, month, category_code, reload]);
+        dispatch(clearTransactions());
+        dispatch(fetchTransactions({ userId, year, month, category_code }));
+    }, [dispatch, userId, year, month, category_code, reload]);
 
-    if (loading) {
-        return (
-            <Spinner />
-        );
+    if (transactionsList.loading) {
+        return <Spinner />;
+    }
+
+    if (transactionsList.error) {
+        return <div>Error: {transactionsList.error}</div>;
     }
 
     return (
         <div className="w-full px-4 sm:px-2">
-            {transactions.length > 0 ? (
-                transactions.map((t) => (
-                        <Transaction key={t.referencecode} color={color} {...t} />
+            {transactionsList.items.length > 0 ? (
+                transactionsList.items.map((t) => (
+                    <Transaction key={t.referencecode} color={color} {...t} />
                 ))
             ) : (
                 <div className={`flex w-full justify-center`}>
@@ -66,10 +58,5 @@ export default function Transactions({
                 </div>
             )}
         </div>
-
-
     );
 }
-
-
-

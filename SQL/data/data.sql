@@ -27,3 +27,8 @@ VALUES
     ('TRA202502190217H8', 1000000000, 'BUD202502190210XY', 'CAT202502222203044D', 'Stock Investment', 200.00, '2025-02-11', 'Bought Tesla stocks'),
     ('TRA202502190218I9', 1000000000, 'BUD202502190210XY', 'CAT202502222203044D', 'Retirement Contribution', 300.00, '2025-02-12', '401(k) contribution');
 
+INSERT INTO vaults (user_id, name, description, target, image, notes)
+VALUES
+    (1000000003, 'House', 'Savings for container home.', 200000, 'https://images.squarespace-cdn.com/content/v1/61dc9316aabec173be60056d/3cd37570-4cc8-4d07-b8db-3eb6db6bac48/TPB+Spring-16.jpg', 'Started collecting in 2020'),
+    (1000000003, 'BMW S1000 RR', 'Gonna Get it.', 25000, 'https://mcn-images.bauersecure.com/wp-images/4705/900x0/2023_bmw_s1000rr_9.jpg', 'Starting collecting.'),
+    (1000000003, 'Default', '', 0, '', '');

@@ -3,7 +3,6 @@ import { getCategoryData } from "@/app/actions/getCategoryData";
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Skeleton } from "@/components/ui/skeleton";
-import {Button} from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress"
 
 ChartJS.register(ArcElement, Tooltip, Legend);
@@ -68,28 +67,35 @@ export default function CategoryTrackerComponent({
 
     if (initialLoading && loading) {
         return (
-            <div
-                className="p-3 rounded-2xl shadow-md border flex items-center"
-            >
-                <Skeleton className="w-[3.5rem] h-[3.5rem] rounded-full mr-3" />
-                <div className="flex-1 space-y-2">
-                    <Skeleton className="h-4 w-1/2" />
-                    <Skeleton className="h-3 w-1/3" />
+            <div className="p-2 w-full">
+                <div className="p-3 w-full md:w-full rounded-xl shadow-md border flex items-center text-xl justify-between ">
+                    {/* Desktop view skeleton */}
+                    <div className="items-center justify-center hidden sm:inline-flex">
+                        <div className="w-[3.3rem] h-[3.3rem] flex items-center justify-center">
+                            <Skeleton className="w-full h-full rounded-full" />
+                        </div>
+                        <div className="flex flex-col px-3">
+                            <Skeleton className="h-6 w-24 mb-1" />
+                            <Skeleton className="h-4 w-20" />
+                        </div>
+                    </div>
+
+                    {/* Mobile view skeleton */}
+                    <div className="flex flex-col w-full justify-center sm:hidden">
+                        <div className="flex items-center justify-start">
+                            <Skeleton className="h-5 w-24" />
+                        </div>
+                        <div className="w-full flex flex-col text-xs items-center mt-2">
+                            <Skeleton className="h-2 w-full mb-1" />
+                            <Skeleton className="h-4 w-8 self-end" />
+                        </div>
+                    </div>
                 </div>
             </div>
         );
     }
 
     if (!data) return <div>No data found.</div>;
-
-
-    // function getColor(category: string) {
-    //     switch (category) {
-    //         case "CAT2025022222030415": return "bg-blue-400";
-    //         case "CAT202502222203044D": return "bg-green-400";
-    //         case "CAT20250222220304D1": return "bg-amber-400";
-    //     }
-    // }
 
     const chartData = {
         datasets: [
@@ -155,9 +161,7 @@ export default function CategoryTrackerComponent({
 
                 <div className={`hidden md:flex`}>
                     <div className={`w-full text-center`}>
-                        <Button variant="ghost">
-                            Test
-                        </Button>
+
                     </div>
                 </div>
 
