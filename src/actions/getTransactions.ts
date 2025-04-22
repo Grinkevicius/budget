@@ -14,13 +14,16 @@ export async function getTransactions(userId: string, year: number, month: numbe
                 t.referencecode, 
                 t.description, 
                 t.amount, 
-                TO_CHAR(t.transaction_date, 'YYYY-MM-DD') as transaction_date, 
+                TO_CHAR(t.transaction_date, 'YYYY-MM-DD') AS transaction_date, 
                 c.type, 
-                t.category_code, 
+                t.category_code,
+                t.vault_code,
+                v.description AS vault_description,
                 t.is_recurring
             FROM transactions t
             JOIN categories c ON t.category_code = c.referencecode
             JOIN budgets b ON t.budget_code = b.referencecode
+            LEFT OUTER JOIN vaults v ON t.vault_code = v.referencecode
             WHERE b.user_id = $1
             AND b.year = $2
             AND b.month = $3

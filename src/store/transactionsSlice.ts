@@ -9,8 +9,10 @@ export interface Transaction {
     amount: number;
     transaction_date: string;
     category_code: string;
+    vault_code: string;
+    vault_description: string;
     is_recurring: boolean;
-    note: string;
+    notes: []
 }
 
 interface TransactionsList {

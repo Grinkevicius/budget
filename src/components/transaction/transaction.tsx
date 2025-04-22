@@ -2,6 +2,15 @@ import { ArrowPathIcon } from '@heroicons/react/24/outline';
 import { Badge } from "@/components/ui/badge"
 import {Card} from "@/components/ui/card";
 import {useTheme} from "next-themes";
+import { Transaction as TransactionInterface } from "@/store/transactionsSlice";
+import { useVault } from "@/contexts/VaultContext";
+import { useRouter } from 'next/navigation';
+import {Vault} from "lucide-react";
+
+interface TransactionProps extends TransactionInterface {
+    color: string;
+}
+
 
 export default function Transaction({
     description,
@@ -9,19 +18,16 @@ export default function Transaction({
     transaction_date,
     is_recurring,
     category_code,
+    vault_code,
+    vault_description,
     color
-}: {
-    description: string;
-    amount: number;
-    transaction_date: string;
-    is_recurring: boolean;
-    category_code: string;
-    color: string;
-}) {
+}: TransactionProps) {
 
     const { theme } = useTheme();
     const date = new Date(transaction_date);
     const formattedDate = date.toLocaleDateString();
+    const { setSelectedVaultRef } = useVault();
+    const router = useRouter();
 
     function getColor(category_code: string) {
         switch (category_code) {
@@ -36,6 +42,12 @@ export default function Transaction({
         }
     }
 
+    const manageVault = (vault_code: string) => {
+            setSelectedVaultRef(vault_code);
+            router.push('/vaults/manage');
+    }
+
+    console.log("vault code -> ", vault_code);
     return (
         <Card key={category_code} className="border p-3 mb-1 mt-1 rounded-lg hover:shadow-lg transition-shadow duration-200 dark:bg-[transparent]">
 
@@ -56,15 +68,18 @@ export default function Transaction({
                 </div>
 
                 <div className="flex items-center sm:w-full sm:justify-end space-x-2 lg:w-[100px] text-gray-500">
-
                     <span className="text-sm">{formattedDate}</span>
-                    {is_recurring && (
-                        <ArrowPathIcon className="h-4 w-4 text-gray-500" />
-                    )}
-
+                    {is_recurring && (<ArrowPathIcon className="h-4 w-4 text-gray-500" />)}
                 </div>
 
             </div>
+
+            { vault_code && (
+                <div onClick={() => manageVault(vault_code)} className="flex items-center sm:w-full justify-end">
+                     <span className="flex items-center text-gray-500 text-sm hover:text-gray-200 cursor-pointer">{vault_description} <Vault className="h-4 w-4 ml-1" /></span>
+                </div>
+            )}
+
 
         </Card>
 

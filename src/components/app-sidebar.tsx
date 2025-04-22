@@ -31,7 +31,7 @@ import {useSession} from "next-auth/react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@radix-ui/react-collapsible";
 import {getVaults} from "@/actions/get/getVaults";
 import {DropdownMenuSeparator, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
-import {useVault} from "@/contexts/VaultContext";
+import { useVault } from "@/contexts/VaultContext";
 import { useRouter } from 'next/navigation';
 
 
@@ -53,7 +53,6 @@ export interface Vault {
     notes?: string | null;
     created_at?: string;
 }
-
 
 export function AppSidebar() {
     const { theme, setTheme } = useTheme();
@@ -89,13 +88,6 @@ export function AppSidebar() {
             items: [],
         },
     ]);
-
-    async function handleVault(referencecode: string) {
-        setSelectedVaultRef(referencecode);
-        await Promise.resolve();
-        router.push(`/vaults/manage`);
-    }
-
 
     useEffect(() => {
         if (session && session.user?.id) {
@@ -158,7 +150,7 @@ export function AppSidebar() {
                                                         <SidebarMenuSub>
                                                             {item.items?.map((subItem, index) => (
                                                                 <SidebarMenuSubItem key={index}>
-                                                                    <div className="flex items-center justify-between w-full">
+                                                                    <div className="flex items-center justify-between w-full h-7">
                                                                         <SidebarMenuSubButton asChild>
                                                                             <button
                                                                                 onClick={() => {
@@ -172,14 +164,14 @@ export function AppSidebar() {
 
                                                                         <DropdownMenu>
                                                                             <DropdownMenuTrigger asChild>
-                                                                                <button type="button" className="p-2">
+                                                                                <button type="button" className="w-1 text-sm">
                                                                                     <MoreHorizontal />
                                                                                     <span className="sr-only">More</span>
                                                                                 </button>
                                                                             </DropdownMenuTrigger>
                                                                             <DropdownMenuContent
-                                                                                className="w-48"
-                                                                                side={isMobile ? "bottom" : "right"}
+                                                                                className="w-39"
+                                                                                side={isMobile ? "bottom" : "bottom"}
                                                                                 align={isMobile ? "end" : "start"}
                                                                             >
                                                                                 <DropdownMenuItem>
