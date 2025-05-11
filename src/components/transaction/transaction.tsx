@@ -11,7 +11,6 @@ interface TransactionProps extends TransactionInterface {
     color: string;
 }
 
-
 export default function Transaction({
     description,
     amount,
@@ -69,7 +68,7 @@ export default function Transaction({
 
                 <div className="flex items-center sm:w-full sm:justify-end space-x-2 lg:w-[100px] text-gray-500">
                     <span className="text-sm">{formattedDate}</span>
-                    {is_recurring && (<ArrowPathIcon className="h-4 w-4 text-gray-500" />)}
+                    {is_recurring && (<ArrowPathIcon data-testid={`recurring-icon`} className="h-4 w-4 text-gray-500" />)}
                 </div>
 
             </div>
