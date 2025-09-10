@@ -39,11 +39,15 @@ export default function Transactions({
     }, [dispatch, userId, year, month, category_code, reload]);
 
     if (transactionsList.loading) {
-        return <Spinner />;
+        return <Spinner size="sm" className="min-h-[100px]" />;
     }
 
     if (transactionsList.error) {
-        return <div>Error: {transactionsList.error}</div>;
+        return (
+            <div className="w-full px-4 sm:px-2 py-4 text-center">
+                <p className="text-red-500 text-sm">Error: {transactionsList.error}</p>
+            </div>
+        );
     }
 
     return (

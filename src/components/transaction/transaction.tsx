@@ -1,7 +1,6 @@
 import { ArrowPathIcon } from '@heroicons/react/24/outline';
 import { Badge } from "@/components/ui/badge"
 import {Card} from "@/components/ui/card";
-import {useTheme} from "next-themes";
 import { Transaction as TransactionInterface } from "@/store/transactionsSlice";
 import { useVault } from "@/contexts/VaultContext";
 import { useRouter } from 'next/navigation';
@@ -22,22 +21,22 @@ export default function Transaction({
     color
 }: TransactionProps) {
 
-    const { theme } = useTheme();
     const date = new Date(transaction_date);
     const formattedDate = date.toLocaleDateString();
     const { setSelectedVaultRef } = useVault();
     const router = useRouter();
 
     function getColor(category_code: string) {
+        // Use CSS custom properties that work with both light and dark themes
         switch (category_code) {
             case "CAT2025022222030415": //NEEDS
-                return theme === "dark" ? "#243642" : "rgb(219, 234, 254)";
+                return "rgb(219, 234, 254)"; // Blue
             case "CAT20250222220304D1": //WANTS
-                return theme === "dark" ? "#387478" : "rgb(254, 249, 195)";
+                return "rgb(254, 249, 195)"; // Yellow
             case "CAT202502222203044D": //SAVINGS
-                return theme === "dark" ? "#629584" : "rgb(220, 252, 231)";
+                return "rgb(220, 252, 231)"; // Green
             default:
-                return "#FFFFFF";
+                return "rgb(255, 255, 255)";
         }
     }
 

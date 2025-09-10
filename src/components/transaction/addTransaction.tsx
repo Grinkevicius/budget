@@ -46,10 +46,16 @@ export function AddTransactionDialog({
         new Date().toISOString().split("T")[0]
     );
     const [isRecurring, setIsRecurring] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        if (!category || !description || amount <= 0) {
+            return;
+        }
 
+        setIsSubmitting(true);
         const transactionData = {
             userId,
             budgetCode,
@@ -65,6 +71,8 @@ export function AddTransactionDialog({
             onCloseAction(resultAction.transaction);
         } catch (error) {
             console.error("Failed to add transaction:", error);
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -155,7 +163,12 @@ export function AddTransactionDialog({
                     </div>
 
                     <DialogFooter>
-                        <Button type="submit">Add Transaction</Button>
+                        <Button 
+                            type="submit" 
+                            disabled={isSubmitting || !category || !description || amount <= 0}
+                        >
+                            {isSubmitting ? 'Adding...' : 'Add Transaction'}
+                        </Button>
                     </DialogFooter>
                 </form>
             </DialogContent>

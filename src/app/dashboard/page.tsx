@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, memo, Suspense } from "react";
+import React, { useState, useEffect, useCallback, memo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useTheme } from "next-themes";
 import { useAlert } from '@/contexts/AlertContext';
 
 // Components
@@ -36,10 +35,12 @@ interface DashboardState {
     categories: Category[];
     budgetCode: string | null;
     isBudgetLoading: boolean;
+    isCategoriesLoading: boolean;
     trackerReloads: Record<string, boolean>;
     categoryReloads: Record<string, boolean>;
     isAddTransactionOpen: boolean;
-    isFetchingBudget: boolean; // Added this state
+    isFetchingBudget: boolean;
+    error: string | null;
 }
 
 interface CategoryListProps {
@@ -115,7 +116,6 @@ const BudgetDashboard: React.FC = () => {
     const dispatch = useAppDispatch();
     const { data: session, status } = useSession();
     const router = useRouter();
-    const { theme } = useTheme();
 
     const [currentDate, setCurrentDate] = useState({
         month: new Date().getMonth() + 1,
@@ -126,20 +126,23 @@ const BudgetDashboard: React.FC = () => {
         categories: [],
         budgetCode: null,
         isBudgetLoading: false,
+        isCategoriesLoading: true,
         trackerReloads: {},
         categoryReloads: {},
         isAddTransactionOpen: false,
         isFetchingBudget: false,
+        error: null,
     });
 
     const getColor = useCallback((category_code: string): string => {
+        // Use CSS custom properties instead of theme hook to avoid hydration issues
         const colors = {
-            "CAT2025022222030415": theme === "dark" ? "#243642" : "rgb(219, 234, 254)",
-            "CAT20250222220304D1": theme === "dark" ? "#387478" : "rgb(254, 249, 195)",
-            "CAT202502222203044D": theme === "dark" ? "#629584" : "rgb(220, 252, 231)",
+            "CAT2025022222030415": "rgb(219, 234, 254)", // Light blue for NEEDS
+            "CAT20250222220304D1": "rgb(254, 249, 195)", // Light yellow for WANTS  
+            "CAT202502222203044D": "rgb(220, 252, 231)", // Light green for SAVINGS
         };
         return colors[category_code as keyof typeof colors] || "#FFFFFF";
-    }, [theme]);
+    }, []);
 
     const handleMonthYearChange = useCallback((month: number, year: number) => {
         dispatch(clearTransactions());
@@ -150,31 +153,41 @@ const BudgetDashboard: React.FC = () => {
     const handleCreateBudget = useCallback(async () => {
         if (!session?.user?.id) return;
 
-        setState(prev => ({ ...prev, isBudgetLoading: true }));
+        setState(prev => ({ ...prev, isBudgetLoading: true, error: null }));
         try {
             const result = await createBudget(
                 session.user.id,
                 currentDate.year,
                 currentDate.month
             );
-            setState(prev => ({
-                ...prev,
-                budgetCode: result?.referencecode || null,
-            }));
-            showAlert({
-                type: 'success',
-                title: 'Success',
-                description: 'Budget created successfully'
-            });
+            
+            if (result?.referencecode) {
+                setState(prev => ({
+                    ...prev,
+                    budgetCode: result.referencecode,
+                    isBudgetLoading: false,
+                    error: null,
+                }));
+                showAlert({
+                    type: 'success',
+                    title: 'Success',
+                    description: 'Budget created successfully'
+                });
+            } else {
+                throw new Error('No budget reference code returned');
+            }
         } catch (error) {
             console.error("Failed to create budget:", error);
+            setState(prev => ({
+                ...prev,
+                isBudgetLoading: false,
+                error: 'Failed to create budget'
+            }));
             showAlert({
                 type: 'error',
                 title: 'Error',
-                description: 'Failed to create budget'
+                description: error instanceof Error ? error.message : 'Failed to create budget'
             });
-        } finally {
-            setState(prev => ({ ...prev, isBudgetLoading: false }));
         }
     }, [session?.user?.id, currentDate.year, currentDate.month, showAlert]);
 
@@ -182,26 +195,32 @@ const BudgetDashboard: React.FC = () => {
         async function fetchBudget() {
             if (!session?.user?.id) return;
 
-            setState(prev => ({ ...prev, isFetchingBudget: true }));
+            setState(prev => ({ ...prev, isFetchingBudget: true, error: null }));
             try {
                 const data = await getBudgetForMonth(
                     session.user.id,
                     currentDate.year,
                     currentDate.month
                 );
+                
                 setState(prev => ({
                     ...prev,
                     budgetCode: data ? data.referencecode : null,
+                    isFetchingBudget: false,
+                    error: null,
                 }));
             } catch (error) {
                 console.error('Failed to fetch budget:', error);
+                setState(prev => ({
+                    ...prev,
+                    isFetchingBudget: false,
+                    error: 'Failed to load budget data'
+                }));
                 showAlert({
                     type: 'error',
                     title: 'Error',
-                    description: 'Failed to fetch budget data'
+                    description: error instanceof Error ? error.message : 'Failed to fetch budget data'
                 });
-            } finally {
-                setState(prev => ({ ...prev, isFetchingBudget: false }));
             }
         }
 
@@ -216,6 +235,9 @@ const BudgetDashboard: React.FC = () => {
 
     useEffect(() => {
         async function fetchCategories() {
+            if (!session?.user) return;
+            
+            setState(prev => ({ ...prev, isCategoriesLoading: true, error: null }));
             try {
                 const data = await getCategories();
                 const initialReloads = data.reduce((acc, cat) => ({
@@ -228,17 +250,26 @@ const BudgetDashboard: React.FC = () => {
                     categories: data,
                     trackerReloads: initialReloads,
                     categoryReloads: initialReloads,
+                    isCategoriesLoading: false,
+                    error: null,
                 }));
             } catch (error) {
                 console.error("Failed to fetch categories:", error);
-                // Add toast notification here
+                setState(prev => ({
+                    ...prev,
+                    isCategoriesLoading: false,
+                    error: 'Failed to load categories'
+                }));
+                showAlert({
+                    type: 'error',
+                    title: 'Error',
+                    description: 'Failed to load categories'
+                });
             }
         }
 
-        if (session?.user) {
-            fetchCategories();
-        }
-    }, [session]);
+        fetchCategories();
+    }, [session?.user, showAlert]);
 
     const handleIncomeChange = useCallback(() => {
         setState(prev => ({
@@ -252,6 +283,36 @@ const BudgetDashboard: React.FC = () => {
 
     if (!session) return null;
 
+    // Show error state
+    if (state.error) {
+        return (
+            <div className="mx-auto max-w-7xl px-4 w-full flex flex-col items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                    <p className="text-red-500 mb-4">{state.error}</p>
+                    <Button onClick={() => window.location.reload()}>
+                        Retry
+                    </Button>
+                </div>
+            </div>
+        );
+    }
+
+    // Show loading state for initial load
+    if (state.isCategoriesLoading || (state.isFetchingBudget && !state.budgetCode)) {
+        return (
+            <div className="mx-auto max-w-7xl px-4 w-full flex flex-col">
+                <div className="w-full md:inline-flex md:justify-between mb-6">
+                    <MonthYearPicker
+                        month={currentDate.month}
+                        year={currentDate.year}
+                        onChangeAction={handleMonthYearChange}
+                    />
+                </div>
+                <Spinner size="lg" className="min-h-[300px]" />
+            </div>
+        );
+    }
+
     return (
         <>
             <div className="mx-auto max-w-7xl px-4 w-full flex flex-col">
@@ -262,29 +323,28 @@ const BudgetDashboard: React.FC = () => {
                         onChangeAction={handleMonthYearChange}
                     />
 
-                    <Suspense fallback={<Spinner />}>
-                        {!state.isFetchingBudget && !state.isBudgetLoading && state.budgetCode && (
-                            <Income
-                                userid={session.user.id}
-                                month={currentDate.month}
-                                year={currentDate.year}
-                                onIncomeChange={handleIncomeChange}
-                            />
-                        )}
-                    </Suspense>
+                    {state.budgetCode && !state.isFetchingBudget && (
+                        <Income
+                            userid={session.user.id}
+                            month={currentDate.month}
+                            year={currentDate.year}
+                            onIncomeChange={handleIncomeChange}
+                        />
+                    )}
                 </div>
 
-                {state.isFetchingBudget || state.isBudgetLoading ? (
-                    <Spinner />
+                {state.isBudgetLoading ? (
+                    <Spinner size="md" className="min-h-[200px]" />
                 ) : !state.budgetCode ? (
-                    <div className="w-full text-center">
-                        <p className="pb-2">No budget code found.</p>
+                    <div className="w-full text-center py-12">
+                        <p className="pb-4 text-gray-600 dark:text-gray-400">No budget found for this month.</p>
                         <Button
                             className="dark:bg-[#18181b]"
                             variant="outline"
                             onClick={handleCreateBudget}
+                            disabled={state.isBudgetLoading}
                         >
-                            Create
+                            {state.isBudgetLoading ? 'Creating...' : 'Create Budget'}
                         </Button>
                     </div>
                 ) : (
