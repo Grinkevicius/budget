@@ -14,12 +14,14 @@ import { VaultProvider } from "@/contexts/VaultContext";
 function AuthenticatedLayout({ children } : { children: React.ReactNode }) {
     const { data: session, status } = useSession();
 
+
+
     if (status === "loading") {
         return (
             <div className="w-full min-h-screen flex items-center justify-center">
                 <div className="text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100 mx-auto"></div>
-                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Loading...</p>
+                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Loading session...</p>
                 </div>
             </div>
         );
@@ -55,7 +57,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
                 enableSystem
                 disableTransitionOnChange
             >
-                <SessionProvider>
+                <SessionProvider 
+                    basePath="/api/auth"
+                    refetchInterval={0}
+                    refetchOnWindowFocus={false}
+                >
                     <AuthenticatedLayout>
                         <AlertProvider>
                             {children}

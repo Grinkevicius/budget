@@ -48,7 +48,7 @@ export default function Vaults() {
             }
         }
         fetchVaults();
-    }, [session?.user?.id]);
+    }, [session?.user]);
 
     function buildVaults() {
         return vault.map((v) => {

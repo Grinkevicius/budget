@@ -111,7 +111,7 @@ export function AppSidebar() {
             }
             fetchVaults();
         }
-    }, [session?.user?.id]);
+    }, [session]);
 
     useEffect(() => {
         setMounted(true);
