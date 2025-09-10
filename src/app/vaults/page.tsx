@@ -30,21 +30,29 @@ export default function Vaults() {
     const router = useRouter();
     const { data: session } = useSession();
     const [vault, setVault] = useState<Vault[]>([]);
+    const [loading, setLoading] = useState(true);
     const { setSelectedVaultRef } = useVault();
 
     useEffect(() => {
         async function fetchVaults() {
             if (session?.user) {
-                const data: Vault[] = await getVaults(session.user.id);
-                setVault(data);
+                try {
+                    setLoading(true);
+                    const data: Vault[] = await getVaults(session.user.id);
+                    setVault(data);
+                } catch (error) {
+                    console.error('Failed to fetch vaults:', error);
+                } finally {
+                    setLoading(false);
+                }
             }
         }
         fetchVaults();
-    }, [session]);
+    }, [session?.user?.id]);
 
     function buildVaults() {
         return vault.map((v) => {
-            console.log(v.image);
+
             return (
             <Card key={v.referencecode} className="relative h-48 overflow-hidden group">
                 <div
@@ -87,6 +95,14 @@ export default function Vaults() {
     }
 
     if (!session) return null;
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[200px]">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100"></div>
+            </div>
+        );
+    }
 
     return (
         <>

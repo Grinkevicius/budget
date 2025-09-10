@@ -161,25 +161,22 @@ const BudgetDashboard: React.FC = () => {
                 ...prev,
                 budgetCode: result?.referencecode || null,
             }));
+            showAlert({
+                type: 'success',
+                title: 'Success',
+                description: 'Budget created successfully'
+            });
         } catch (error) {
             console.error("Failed to create budget:", error);
             showAlert({
                 type: 'error',
                 title: 'Error',
-                description: 'Something went wrong'
+                description: 'Failed to create budget'
             });
-
         } finally {
-            showAlert({
-                type: 'success',
-                title: 'Success',
-                description: 'Operation completed successfully'
-            });
-
-
             setState(prev => ({ ...prev, isBudgetLoading: false }));
         }
-    }, [session?.user?.id, currentDate.year, currentDate.month]);
+    }, [session?.user?.id, currentDate.year, currentDate.month, showAlert]);
 
     useEffect(() => {
         async function fetchBudget() {
@@ -198,14 +195,18 @@ const BudgetDashboard: React.FC = () => {
                 }));
             } catch (error) {
                 console.error('Failed to fetch budget:', error);
-                // Add toast notification here
+                showAlert({
+                    type: 'error',
+                    title: 'Error',
+                    description: 'Failed to fetch budget data'
+                });
             } finally {
                 setState(prev => ({ ...prev, isFetchingBudget: false }));
             }
         }
 
         fetchBudget();
-    }, [currentDate.year, currentDate.month, session?.user?.id]);
+    }, [currentDate.year, currentDate.month, session?.user?.id, showAlert]);
 
     useEffect(() => {
         if (status === "unauthenticated") {
@@ -328,8 +329,14 @@ const BudgetDashboard: React.FC = () => {
                     />
                 )}
 
-                <div  className="flex justify-end p-2">
-                    <PlusCircle onClick={() => setState(prev => ({ ...prev, isAddTransactionOpen: true })) } className="w-6 h-6 cursor-pointer" />
+                <div className="flex justify-end p-2">
+                    <button
+                        onClick={() => setState(prev => ({ ...prev, isAddTransactionOpen: true }))}
+                        className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+                        aria-label="Add new transaction"
+                    >
+                        <PlusCircle className="w-6 h-6" />
+                    </button>
                 </div>
 
 

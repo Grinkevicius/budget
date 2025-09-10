@@ -90,26 +90,28 @@ export function AppSidebar() {
     ]);
 
     useEffect(() => {
-        if (session && session.user?.id) {
+        if (session?.user?.id) {
             async function fetchVaults() {
-                const vaultData: Vault[] = await getVaults(session?.user.id);
+                try {
+                    const vaultData: Vault[] = await getVaults(session!.user!.id);
+                    const vaultItems = vaultData.map((vault) => ({
+                        title: vault.name,
+                        url: `/vaults/manage`,
+                        referencecode: vault.referencecode,
+                    }));
 
-
-                const vaultItems = vaultData.map((vault) => ({
-                    title: vault.name, // Or another property from your Vault type
-                    url: `/vaults/manage`,
-                    referencecode: vault.referencecode,
-                }));
-
-                setMenuItems((prevItems) =>
-                    prevItems.map((item) =>
-                        item.title === "Vaults" ? { ...item, items: vaultItems } : item
-                    )
-                );
+                    setMenuItems((prevItems) =>
+                        prevItems.map((item) =>
+                            item.title === "Vaults" ? { ...item, items: vaultItems } : item
+                        )
+                    );
+                } catch (error) {
+                    console.error('Failed to fetch vaults:', error);
+                }
             }
             fetchVaults();
         }
-    }, [session]);
+    }, [session?.user?.id]);
 
     useEffect(() => {
         setMounted(true);

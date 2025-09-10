@@ -46,7 +46,7 @@ export default function Transaction({
             router.push('/vaults/manage');
     }
 
-    console.log("vault code -> ", vault_code);
+
     return (
         <Card key={category_code} className="border p-3 mb-1 mt-1 rounded-lg hover:shadow-lg transition-shadow duration-200 dark:bg-[transparent]">
 

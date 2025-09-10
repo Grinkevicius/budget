@@ -1,28 +1,25 @@
 "use client";
 
-import { useEffect, useContext } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Header from "@/components/navbar";
-import { SessionContext } from "@/utils/session";
+import { useSession } from "next-auth/react";
 
 export default function BudgetCards() {
-    const session = useContext(SessionContext);
+    const { status } = useSession();
     const router = useRouter();
 
     useEffect(() => {
-        if (session === null) {
+        if (status === "unauthenticated") {
             router.push("/auth/signin");
         }
-    }, [session, router]);
+    }, [status, router]);
 
-    if (!session) return <p>Loading session...</p>;
+    if (status === "loading") return <p>Loading session...</p>;
+    if (status === "unauthenticated") return null;
 
     return (
-        <>
-            <Header />
-            <div className="p-6">
-                <h1>Budget Cards</h1>
-            </div>
-        </>
+        <div className="p-6">
+            <h1>Budget Cards</h1>
+        </div>
     );
 }

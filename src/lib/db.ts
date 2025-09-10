@@ -1,4 +1,4 @@
-import {Pool, QueryArrayConfig} from 'pg';
+import {Pool} from 'pg';
 
 const connectionString = process.env.DATABASE_URL;
 
@@ -10,6 +10,6 @@ export const pool = new Pool({
     connectionString,
 });
 
-export async function query(text: QueryArrayConfig<string>, params: never) {
+export async function query(text: string, params?: unknown[]) {
     return await pool.query(text, params);
 }

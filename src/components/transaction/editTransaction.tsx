@@ -15,7 +15,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { updateTransaction } from "@/actions/updateTransaction";
 
 interface Transaction {
     referencecode: string;
@@ -51,9 +50,11 @@ export function EditTransaction({
             description,
             amount,
             transaction_date: transactionDate,
-            note: "", // Add if needed
             is_recurring: isRecurring,
-            category_code: transaction.category_code // Add this line
+            category_code: transaction.category_code,
+            vault_code: "",
+            vault_description: "",
+            notes: [] as []
         };
 
         try {

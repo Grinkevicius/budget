@@ -34,18 +34,21 @@ const CameraCapture: React.FC = () => {
         });
     }
 
-    const handleError = (error: any) => {
+    const handleError = (error: unknown) => {
         showAlert({
             type: 'error',
             title: 'Error',
-            description: error?.message || 'An error occurred while capturing photo',
+            description: (error as Error)?.message || 'An error occurred while capturing photo',
         });
     }
 
     return (
         <div>
             <button onClick={takePhoto}>Take Photo</button>
-            {photo && <img src={photo} alt="Captured" style={{ maxWidth: '100%', marginTop: '1rem' }} />}
+            {photo && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={photo} alt="Captured" style={{ maxWidth: '100%', marginTop: '1rem' }} />
+            )}
             <div className="">
                 <button onClick={handleSuccess}>success</button>
             </div>

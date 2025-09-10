@@ -63,7 +63,7 @@ export default function CategoryTrackerComponent({
         }
         fetchData().then();
 
-    }, [category, userId, year, month, reload]);
+    }, [category, userId, year, month, reload, initialLoading]);
 
     if (initialLoading && loading) {
         return (
