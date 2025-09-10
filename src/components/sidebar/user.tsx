@@ -1,5 +1,7 @@
 "use client"
 
+import { useState, useEffect } from "react"
+import { useTheme } from "next-themes"
 import {
     BadgeCheck,
     Bell,
@@ -7,6 +9,8 @@ import {
     CreditCard,
     LogOut,
     Sparkles,
+    Sun,
+    Moon,
 } from "lucide-react"
 
 import {
@@ -40,6 +44,51 @@ export function NavUser({
     }
 }) {
     const { isMobile } = useSidebar()
+    const { theme, setTheme } = useTheme()
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
+    const getThemeIcon = () => {
+        if (!mounted) return <Sun className="h-4 w-4" />
+        switch (theme) {
+            case 'light':
+                return <Sun className="h-4 w-4" />
+            case 'dark':
+                return <Moon className="h-4 w-4" />
+            default:
+                return <Sun className="h-4 w-4" />
+        }
+    }
+
+    const getThemeLabel = () => {
+        if (!mounted) return 'Light Mode'
+        switch (theme) {
+            case 'light':
+                return 'Light Mode'
+            case 'dark':
+                return 'Dark Mode'
+            default:
+                return 'Light Mode'
+        }
+    }
+
+    const cycleTheme = () => {
+        if (!mounted) return
+        switch (theme) {
+            case 'light':
+                setTheme('dark')
+                break
+            case 'dark':
+                setTheme('light')
+                break
+            default:
+                setTheme('light')
+                break
+        }
+    }
 
     return (
         <SidebarMenu>
@@ -88,6 +137,18 @@ export function NavUser({
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
                         <DropdownMenuGroup>
+                            <DropdownMenuItem 
+                                onClick={(e) => {
+                                    e.preventDefault()
+                                    cycleTheme()
+                                }}
+                                onSelect={(e) => {
+                                    e.preventDefault()
+                                }}
+                            >
+                                {getThemeIcon()}
+                                {getThemeLabel()}
+                            </DropdownMenuItem>
                             <DropdownMenuItem>
                                 <BadgeCheck />
                                 Account

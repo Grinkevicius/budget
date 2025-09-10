@@ -1,18 +1,43 @@
 interface SpinnerProps {
-    size?: 'sm' | 'md' | 'lg';
+    size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
     className?: string;
+    text?: string;
+    fullScreen?: boolean;
 }
 
-const Spinner = ({ size = 'md', className = '' }: SpinnerProps) => {
+const Spinner = ({ 
+    size = 'md', 
+    className = '', 
+    text,
+    fullScreen = false 
+}: SpinnerProps) => {
     const sizeClasses = {
-        sm: 'w-4 h-4 border-2',
-        md: 'w-8 h-8 border-4',
-        lg: 'w-12 h-12 border-8'
+        xs: 'h-4 w-4',
+        sm: 'h-5 w-5',
+        md: 'h-6 w-6',
+        lg: 'h-8 w-8',
+        xl: 'h-12 w-12'
     };
 
+    const containerClasses = fullScreen 
+        ? 'fixed inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm z-50 flex items-center justify-center'
+        : `flex items-center justify-center ${className}`;
+
+    const minHeightClass = fullScreen ? '' : 'min-h-[100px]';
+
     return (
-        <div className={`flex items-center justify-center min-h-[100px] ${className}`}>
-            <div className={`${sizeClasses[size]} border-gray-300 border-t-blue-600 rounded-full animate-spin dark:border-gray-600 dark:border-t-blue-400`} />
+        <div className={`${containerClasses} ${minHeightClass}`}>
+            <div className="text-center">
+                {/* Simple spinner matching the session loading style */}
+                <div className={`animate-spin rounded-full ${sizeClasses[size]} border-b-2 border-gray-900 dark:border-gray-100 mx-auto`}></div>
+                
+                {/* Optional loading text */}
+                {text && (
+                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                        {text}
+                    </p>
+                )}
+            </div>
         </div>
     );
 };

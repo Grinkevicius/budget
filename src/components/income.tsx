@@ -2,16 +2,14 @@
 
 import { useEffect, useState, ChangeEvent } from "react";
 import { getUserIncome, updateUserIncome } from "@/actions/income_actions";
-import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
-
-const MySwal = withReactContent(Swal);
+import { useAlert } from '@/contexts/AlertContext';
 
 interface IncomeSetterProps {
     userId: string;
 }
 
 export default function IncomeSetter({ userId }: IncomeSetterProps) {
+    const { showAlert } = useAlert();
     const [income, setIncome] = useState<string | number>("");
     const [loading, setLoading] = useState<boolean>(true);
     const [saving, setSaving] = useState<boolean>(false);
@@ -25,22 +23,16 @@ export default function IncomeSetter({ userId }: IncomeSetterProps) {
         fetchIncome();
     }, [userId]);
 
-    const showToast = (message: string, type: "success" | "error" | "warning") => {
-        MySwal.fire({
-            toast: true,
-            position: "top-end",
-            icon: type,
-            title: message,
-            showConfirmButton: false,
-            timer: 3000,
-            timerProgressBar: true,
-        });
-    };
+
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         const value = parseFloat(e.target.value);
         if (value < 0) {
-            showToast("Income cannot be negative!", "warning");
+            showAlert({
+                type: 'error',
+                title: 'Invalid Input',
+                description: 'Income cannot be negative!'
+            });
             return;
         }
         setIncome(isNaN(value) ? "" : value);
@@ -48,7 +40,11 @@ export default function IncomeSetter({ userId }: IncomeSetterProps) {
 
     const handleSave = async () => {
         if (income === "" || isNaN(Number(income)) || Number(income) < 0) {
-            showToast("Please enter a valid income!", "error");
+            showAlert({
+                type: 'error',
+                title: 'Invalid Income',
+                description: 'Please enter a valid income amount!'
+            });
             return;
         }
 
@@ -56,51 +52,63 @@ export default function IncomeSetter({ userId }: IncomeSetterProps) {
         const response = await updateUserIncome(userId, Number(income));
 
         if (response.error) {
-            showToast("Failed to update income!", "error");
+            showAlert({
+                type: 'error',
+                title: 'Update Failed',
+                description: 'Failed to update income. Please try again.'
+            });
         } else {
-            showToast("Income updated successfully!", "success");
+            showAlert({
+                type: 'success',
+                title: 'Success',
+                description: 'Income updated successfully!'
+            });
         }
         setSaving(false);
     };
 
     if (loading)
         return (
-            <div className="p-6 rounded-2xl shadow-lg bg-white animate-pulse">
-                {/* Skeleton for heading */}
-                <div className="h-8 bg-gray-200 rounded w-1/2 mb-6"></div>
-
-                <div className="flex flex-col md:flex-row items-center gap-6">
-                    {/* Skeleton for input */}
-                    <div className="w-full md:w-1/2">
-                        <div className="h-10 bg-gray-200 rounded"></div>
+            <div className="animate-pulse">
+                <div className="flex flex-col sm:flex-row items-end gap-4">
+                    <div className="w-full sm:flex-1">
+                        <div className="h-4 bg-muted rounded w-1/3 mb-2"></div>
+                        <div className="h-12 bg-muted rounded-lg"></div>
                     </div>
-                    {/* Skeleton for button */}
-                    <div className="h-10 bg-gray-200 rounded w-24"></div>
+                    <div className="h-12 bg-muted rounded-lg w-24"></div>
                 </div>
             </div>
         );
 
     return (
-
-        <div className="p-6 rounded-2xl shadow-lg bg-white">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Set Monthly Income</h2>
-            <div className="flex flex-col md:flex-row items-center gap-6">
-                <div className="relative w-full md:w-1/2">
-                    <span className="absolute inset-y-0 left-3 flex items-center text-gray-500">$</span>
-                    <input
-                        type="number"
-                        value={income}
-                        onChange={handleChange}
-                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                        placeholder="Enter income"
-                    />
+        <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row items-end gap-4">
+                <div className="relative w-full sm:flex-1">
+                    <label className="block text-sm font-medium text-foreground mb-3">
+                        Default Monthly Income
+                    </label>
+                    <div className="relative">
+                        <span className="absolute inset-y-0 left-4 flex items-center text-muted-foreground text-lg font-semibold">$</span>
+                        <input
+                            type="number"
+                            value={income}
+                            onChange={handleChange}
+                            className="w-full pl-12 pr-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-lg font-medium"
+                            placeholder="5000"
+                            min="0"
+                            step="0.01"
+                        />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                        This will be automatically added to new budgets
+                    </p>
                 </div>
                 <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="w-full md:w-auto bg-gradient-to-r from-blue-500 to-blue-600 text-white px-8 py-3 rounded-lg shadow-md hover:from-blue-600 hover:to-blue-700 transition font-semibold"
+                    className="w-full sm:w-auto bg-primary text-primary-foreground px-8 py-3 rounded-xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium shadow-sm hover:shadow-md"
                 >
-                    {saving ? "Saving..." : "Save"}
+                    {saving ? "Saving..." : "Save Income"}
                 </button>
             </div>
         </div>

@@ -3,15 +3,13 @@ import {
     Vault,
     Home,
     LayoutDashboard,
-    Sun,
-    Moon,
+    Settings,
     ChevronRight,
     MoreHorizontal,
     Folder,
     Share,
     Trash2
 } from "lucide-react";
-import { useTheme } from "next-themes";
 
 import {
     Sidebar,
@@ -55,7 +53,6 @@ export interface Vault {
 }
 
 export function AppSidebar() {
-    const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
     const { setSelectedVaultRef } = useVault();
     const router = useRouter();
@@ -86,6 +83,11 @@ export function AppSidebar() {
             icon: Vault,
             isActive: true,
             items: [],
+        },
+        {
+            title: "Settings",
+            url: "/settings",
+            icon: Settings,
         },
     ]);
 
@@ -119,10 +121,6 @@ export function AppSidebar() {
 
     if (!mounted) return null;
 
-    const toggleTheme = () => {
-        setTheme(theme === "dark" ? "light" : "dark");
-    };
-
     return (
         <Sidebar>
             <SidebarContent>
@@ -135,7 +133,7 @@ export function AppSidebar() {
                                     <Collapsible key={item.title}>
                                         <SidebarMenuItem>
                                             <SidebarMenuButton asChild>
-                                                <Link href={item.url}>
+                                                <Link href={item.url} prefetch={true}>
                                                     {item.icon && <item.icon />}
                                                     <span>{item.title}</span>
                                                 </Link>
@@ -204,7 +202,7 @@ export function AppSidebar() {
                                 ) : (
                                     <SidebarMenuItem key={item.title}>
                                         <SidebarMenuButton asChild>
-                                            <Link href={item.url}>
+                                            <Link href={item.url} prefetch={true}>
                                                 {item.icon && <item.icon />}
                                                 <span>{item.title}</span>
                                             </Link>
@@ -214,13 +212,7 @@ export function AppSidebar() {
                             )}
 
 
-                            {/* Dark Mode Toggle */}
-                            <SidebarMenuItem>
-                                <SidebarMenuButton onClick={toggleTheme}>
-                                    {theme === "dark" ? <Sun /> : <Moon />}
-                                    <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
+
 
 
                         </SidebarMenu>

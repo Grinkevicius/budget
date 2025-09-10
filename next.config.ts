@@ -5,6 +5,23 @@ const nextConfig: NextConfig = {
     images: {
         unoptimized: true,
     },
+    // Performance optimizations
+    experimental: {
+        optimizePackageImports: ['lucide-react'],
+    },
+    // Turbopack for faster development
+    turbopack: {
+        rules: {
+            '*.svg': {
+                loaders: ['@svgr/webpack'],
+                as: '*.js',
+            },
+        },
+    },
+    // Faster builds and navigation
+    compiler: {
+        removeConsole: process.env.NODE_ENV === 'production',
+    },
     async headers() {
         return [
             {

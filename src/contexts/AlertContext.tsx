@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, AlertCircle, CheckCircle2, Info } from "lucide-react";
+import { Terminal, AlertCircle, CheckCircle2, Info, X } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
 type AlertType = 'default' | 'error' | 'success' | 'info';
@@ -39,10 +39,14 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
         }, duration);
     }, []);
 
+    const dismissAlert = useCallback((id: number) => {
+        setAlerts(prev => prev.filter(alert => alert.id !== id));
+    }, []);
+
     return (
         <AlertContext.Provider value={{ showAlert }}>
             {children}
-            <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+            <div className="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm">
                 <AnimatePresence mode="sync">
                     {alerts.map(alert => {
                         const Icon = icons[alert.type || 'default'];
@@ -50,19 +54,34 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
                         return (
                             <motion.div
                                 key={alert.id}
-                                initial={{ opacity: 0, x: 50 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 50 }}
-                                transition={{ duration: 0.2 }}
+                                initial={{ opacity: 0, x: 300, scale: 0.8 }}
+                                animate={{ opacity: 1, x: 0, scale: 1 }}
+                                exit={{ opacity: 0, x: 300, scale: 0.8 }}
+                                transition={{ 
+                                    duration: 0.3,
+                                    type: "spring",
+                                    stiffness: 300,
+                                    damping: 30
+                                }}
                             >
-                                <Alert variant={alert.type} className="w-96">
+                                <Alert variant={alert.type} className="w-full shadow-lg border-l-4 relative pr-10">
+                                    <button
+                                        onClick={() => dismissAlert(alert.id)}
+                                        className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                                        aria-label="Dismiss alert"
+                                    >
+                                        <X className="h-3 w-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" />
+                                    </button>
+                                    
                                     {alert.title && (
-                                        <AlertTitle className="flex items-center gap-1">
+                                        <AlertTitle className="flex items-center gap-2 text-sm font-semibold pr-6">
                                             <Icon className="h-4 w-4" />
                                             {alert.title}
                                         </AlertTitle>
                                     )}
-                                    <AlertDescription>{alert.description}</AlertDescription>
+                                    <AlertDescription className="text-sm mt-1 pr-6">
+                                        {alert.description}
+                                    </AlertDescription>
                                 </Alert>
                             </motion.div>
                         );

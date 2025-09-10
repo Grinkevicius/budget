@@ -2,10 +2,7 @@
 
 import { useEffect, useState, ChangeEvent } from "react";
 import { getSpendingAllocation, updateSpendingAllocation } from "@/actions/settings_allocations";
-import Swal from "sweetalert2";
-import withReactContent from "sweetalert2-react-content";
-
-const MySwal = withReactContent(Swal);
+import { useAlert } from '@/contexts/AlertContext';
 
 interface Allocation {
     savings: number;
@@ -18,6 +15,7 @@ interface SettingsAllocationProps {
 }
 
 export default function SettingsAllocation({ userId }: SettingsAllocationProps) {
+    const { showAlert } = useAlert();
     const [allocation, setAllocation] = useState<Allocation>({
         savings: 0,
         needs: 0,
@@ -35,27 +33,25 @@ export default function SettingsAllocation({ userId }: SettingsAllocationProps) 
                 if (data) {
                     setAllocation(data);
                 } else {
-                    showToast("No allocation data found. Set your allocation!", "warning");
+                    showAlert({
+                        type: 'info',
+                        title: 'No Data Found',
+                        description: 'No allocation data found. Set your allocation!'
+                    });
                 }
             } catch {
-                showToast("Error loading allocation data", "error");
+                showAlert({
+                    type: 'error',
+                    title: 'Loading Error',
+                    description: 'Error loading allocation data. Please try again.'
+                });
             }
             setLoading(false);
         }
         fetchAllocation();
-    }, [userId]);
+    }, [userId, showAlert]);
 
-    const showToast = (message: string, type: "success" | "error" | "warning") => {
-        MySwal.fire({
-            toast: true,
-            position: "top-end",
-            icon: type,
-            title: message,
-            showConfirmButton: false,
-            timer: 3000,
-            timerProgressBar: true,
-        });
-    };
+
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -63,7 +59,11 @@ export default function SettingsAllocation({ userId }: SettingsAllocationProps) 
         const newAllocation = { ...allocation, [name]: newValue };
         const totalPercentage = Number(newAllocation.savings) + Number(newAllocation.needs) + Number(newAllocation.wants);
         if (totalPercentage > 100) {
-            showToast("Total allocation cannot exceed 100%", "error");
+            showAlert({
+                type: 'error',
+                title: 'Invalid Allocation',
+                description: 'Total allocation cannot exceed 100%'
+            });
             return;
         }
 
@@ -73,7 +73,11 @@ export default function SettingsAllocation({ userId }: SettingsAllocationProps) 
     const handleSave = async () => {
         const total = Number(allocation.savings) + Number(allocation.needs) + Number(allocation.wants);
         if (total !== 100) {
-            showToast("Total allocation must be exactly 100%", "error");
+            showAlert({
+                type: 'error',
+                title: 'Invalid Total',
+                description: 'Total allocation must be exactly 100%'
+            });
             return;
         }
 
@@ -86,9 +90,17 @@ export default function SettingsAllocation({ userId }: SettingsAllocationProps) 
         );
 
         if (response?.error) {
-            showToast("Failed to update allocation", "error");
+            showAlert({
+                type: 'error',
+                title: 'Update Failed',
+                description: 'Failed to update allocation. Please try again.'
+            });
         } else {
-            showToast("Allocation updated successfully!", "success");
+            showAlert({
+                type: 'success',
+                title: 'Success',
+                description: 'Allocation updated successfully!'
+            });
         }
 
         setSaving(false);
@@ -96,54 +108,127 @@ export default function SettingsAllocation({ userId }: SettingsAllocationProps) 
 
     if (loading) {
         return (
-            <div className="p-6 rounded-2xl shadow-lg bg-white animate-pulse">
-                {/* Skeleton for heading */}
-                <div className="h-8 bg-gray-200 rounded w-1/3 mb-6"></div>
-                {/* Skeleton grid for allocation cards */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="animate-pulse space-y-6">
+                <div className="flex justify-between items-center">
+                    <div className="h-4 bg-muted rounded w-1/3"></div>
+                    <div className="h-6 bg-muted rounded w-16"></div>
+                </div>
+                <div className="h-3 bg-muted rounded-full"></div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {[1, 2, 3].map((i) => (
-                        <div key={i} className="p-6 rounded-2xl shadow-md bg-gray-200">
-                            <div className="h-4 bg-gray-300 rounded w-1/2 mb-4"></div>
-                            <div className="h-10 bg-gray-300 rounded"></div>
+                        <div key={i} className="space-y-3">
+                            <div className="h-4 bg-muted rounded w-1/2"></div>
+                            <div className="h-12 bg-muted rounded-xl"></div>
                         </div>
                     ))}
                 </div>
-                {/* Skeleton for button */}
-                <div className="mt-6 h-10 bg-gray-200 rounded w-32"></div>
+                <div className="h-12 bg-muted rounded-xl w-40"></div>
             </div>
         );
     }
 
+    const totalPercentage = Number(allocation.savings) + Number(allocation.needs) + Number(allocation.wants);
+
     return (
-        <div className="p-6 rounded-2xl shadow-lg bg-white">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Set Spending Allocation</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="space-y-6">
+            {/* Progress indicator */}
+            <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-foreground">Total Allocation</span>
+                    <span className={`text-xl font-bold ${
+                        totalPercentage === 100 ? 'text-green-500' : 
+                        totalPercentage > 100 ? 'text-red-500' : 
+                        'text-orange-500'
+                    }`}>
+                        {totalPercentage}%
+                    </span>
+                </div>
+                <div className="w-full bg-muted rounded-full h-3">
+                    <div 
+                        className={`h-3 rounded-full transition-all duration-500 ${
+                            totalPercentage === 100 ? 'bg-green-500' : 
+                            totalPercentage > 100 ? 'bg-red-500' : 
+                            'bg-orange-500'
+                        }`}
+                        style={{ width: `${Math.min(totalPercentage, 100)}%` }}
+                    ></div>
+                </div>
+                {totalPercentage !== 100 && (
+                    <p className="text-xs text-muted-foreground">
+                        {totalPercentage > 100 ? 'Total exceeds 100%' : `${100 - totalPercentage}% remaining to reach 100%`}
+                    </p>
+                )}
+            </div>
+
+            {/* Allocation inputs */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[
-                    { title: "Savings", key: "savings", color: "bg-green-50 text-green-700", border: "border-green-200" },
-                    { title: "Needs", key: "needs", color: "bg-blue-50 text-blue-700", border: "border-blue-200" },
-                    { title: "Wants", key: "wants", color: "bg-yellow-50 text-yellow-700", border: "border-yellow-200" },
+                    { 
+                        title: "Savings", 
+                        key: "savings", 
+                        description: "Emergency fund & investments",
+                        color: "emerald"
+                    },
+                    { 
+                        title: "Needs", 
+                        key: "needs", 
+                        description: "Rent, utilities, groceries",
+                        color: "blue"
+                    },
+                    { 
+                        title: "Wants", 
+                        key: "wants", 
+                        description: "Entertainment & hobbies",
+                        color: "amber"
+                    },
                 ].map((item) => (
-                    <div key={item.key} className={`p-6 rounded-2xl shadow-md ${item.color} border ${item.border} font-semibold`}>
-                        <p>{item.title}</p>
-                        <input
-                            type="number"
-                            name={item.key}
-                            value={allocation[item.key as keyof Allocation]}
-                            onChange={handleChange}
-                            min="0"
-                            max="100"
-                            className="mt-2 w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                        />
+                    <div key={item.key} className="space-y-3">
+                        <div>
+                            <label className="block text-sm font-medium text-foreground mb-1">
+                                {item.title}
+                            </label>
+                            <p className="text-xs text-muted-foreground">
+                                {item.description}
+                            </p>
+                        </div>
+                        <div className="relative">
+                            <input
+                                type="number"
+                                name={item.key}
+                                value={allocation[item.key as keyof Allocation]}
+                                onChange={handleChange}
+                                min="0"
+                                max="100"
+                                step="1"
+                                className={`w-full pr-12 pl-4 py-3 bg-background border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all text-lg font-semibold text-center ${
+                                    item.color === 'emerald' ? 'focus:ring-emerald-500' :
+                                    item.color === 'blue' ? 'focus:ring-blue-500' :
+                                    'focus:ring-amber-500'
+                                }`}
+                                placeholder="0"
+                            />
+                            <span className="absolute inset-y-0 right-4 flex items-center text-muted-foreground text-sm font-medium">
+                                %
+                            </span>
+                        </div>
                     </div>
                 ))}
             </div>
-            <button
-                onClick={handleSave}
-                disabled={saving}
-                className="mt-6 w-full md:w-auto bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg shadow-md hover:from-blue-600 hover:to-blue-700 transition font-semibold"
-            >
-                {saving ? "Saving..." : "Update Allocation"}
-            </button>
+
+            <div className="flex flex-col sm:flex-row gap-4 items-start">
+                <button
+                    onClick={handleSave}
+                    disabled={saving || totalPercentage !== 100}
+                    className="w-full sm:w-auto bg-primary text-primary-foreground px-8 py-3 rounded-xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all font-medium shadow-sm hover:shadow-md"
+                >
+                    {saving ? "Updating..." : "Save Allocations"}
+                </button>
+                {totalPercentage !== 100 && (
+                    <p className="text-sm text-muted-foreground self-center">
+                        Allocations must total exactly 100% to save
+                    </p>
+                )}
+            </div>
         </div>
     );
 }

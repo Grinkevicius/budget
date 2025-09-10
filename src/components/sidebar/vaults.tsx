@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/sidebar"
 import {useEffect, useState} from "react";
 import {getVaults} from "@/actions/get/getVaults";
-import {Vault} from "@/app/vaults/page";
+import {Vault} from "@/components/app-sidebar";
 import Link from "next/link";
 
 export function NavVaults( { userid } : { userid: string | undefined }) {

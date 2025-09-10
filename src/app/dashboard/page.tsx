@@ -3,17 +3,33 @@
 import React, { useState, useEffect, useCallback, memo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import { useAlert } from '@/contexts/AlertContext';
 
-// Components
+// Components - Lazy load heavy components
 import Spinner from "@/components/ui/spinner";
-import CategoryTracker from "@/components/categoryTracker";
 import { MonthYearPicker } from "@/components/datePicker";
 import { Button } from "@/components/ui/button";
-import { AddTransactionDialog } from "@/components/transaction/addTransaction";
-import Income from "@/components/budget/budgetIncome";
 import MobileBottomBar from "@/components/mobile/mobileBottomBar";
-import Transactions from "@/components/transaction/transactions";
+
+// Lazy load heavy components
+import dynamic from 'next/dynamic';
+
+const CategoryTracker = dynamic(() => import("@/components/categoryTracker"), {
+    loading: () => <div className="h-32 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
+});
+
+const AddTransactionDialog = dynamic(() => import("@/components/transaction/addTransaction").then(mod => ({ default: mod.AddTransactionDialog })), {
+    ssr: false
+});
+
+const Income = dynamic(() => import("@/components/budget/budgetIncome"), {
+    loading: () => <div className="h-10 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
+});
+
+const Transactions = dynamic(() => import("@/components/transaction/transactions"), {
+    loading: () => <div className="h-24 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
+});
 
 // Actions & Types
 import { getCategories } from "@/actions/getCategories";
@@ -40,6 +56,7 @@ interface DashboardState {
     categoryReloads: Record<string, boolean>;
     isAddTransactionOpen: boolean;
     isFetchingBudget: boolean;
+    isDateChanging: boolean;
     error: string | null;
 }
 
@@ -70,7 +87,6 @@ const CategoryList: React.FC<CategoryListProps> = memo(({
                     userId={userId}
                     year={year}
                     month={month}
-                    color={getColor(cat.referencecode)}
                     reload={trackerReloads[cat.referencecode]}
                 />
                 <div className="hidden w-full sm:flex">
@@ -116,6 +132,7 @@ const BudgetDashboard: React.FC = () => {
     const dispatch = useAppDispatch();
     const { data: session, status } = useSession();
     const router = useRouter();
+    const { theme } = useTheme();
 
     const [currentDate, setCurrentDate] = useState({
         month: new Date().getMonth() + 1,
@@ -131,20 +148,27 @@ const BudgetDashboard: React.FC = () => {
         categoryReloads: {},
         isAddTransactionOpen: false,
         isFetchingBudget: false,
+        isDateChanging: false,
         error: null,
     });
 
     const getColor = useCallback((category_code: string): string => {
-        // Use CSS custom properties instead of theme hook to avoid hydration issues
         const colors = {
-            "CAT2025022222030415": "rgb(219, 234, 254)", // Light blue for NEEDS
-            "CAT20250222220304D1": "rgb(254, 249, 195)", // Light yellow for WANTS  
-            "CAT202502222203044D": "rgb(220, 252, 231)", // Light green for SAVINGS
+            "CAT2025022222030415": theme === "dark" ? "#243642" : "rgb(219, 234, 254)",
+            "CAT20250222220304D1": theme === "dark" ? "#387478" : "rgb(254, 249, 195)",
+            "CAT202502222203044D": theme === "dark" ? "#629584" : "rgb(220, 252, 231)",
         };
-        return colors[category_code as keyof typeof colors] || "#FFFFFF";
-    }, []);
+        return colors[category_code as keyof typeof colors] || (theme === "dark" ? "#374151" : "#FFFFFF");
+    }, [theme]);
 
     const handleMonthYearChange = useCallback((month: number, year: number) => {
+        // Immediately show loading state and clear old data
+        setState(prev => ({ 
+            ...prev, 
+            isDateChanging: true,
+            budgetCode: null,
+            error: null
+        }));
         dispatch(clearTransactions());
         setCurrentDate({ month, year });
     }, [dispatch]);
@@ -166,6 +190,7 @@ const BudgetDashboard: React.FC = () => {
                     ...prev,
                     budgetCode: result.referencecode,
                     isBudgetLoading: false,
+                    isDateChanging: false,
                     error: null,
                 }));
                 showAlert({
@@ -181,6 +206,7 @@ const BudgetDashboard: React.FC = () => {
             setState(prev => ({
                 ...prev,
                 isBudgetLoading: false,
+                isDateChanging: false,
                 error: 'Failed to create budget'
             }));
             showAlert({
@@ -193,7 +219,8 @@ const BudgetDashboard: React.FC = () => {
 
     useEffect(() => {
         async function fetchBudget() {
-            if (!session?.user?.id) return;
+            // Don't fetch if session is still loading or user not available
+            if (status === "loading" || !session?.user?.id) return;
 
             setState(prev => ({ ...prev, isFetchingBudget: true, error: null }));
             try {
@@ -207,6 +234,7 @@ const BudgetDashboard: React.FC = () => {
                     ...prev,
                     budgetCode: data ? data.referencecode : null,
                     isFetchingBudget: false,
+                    isDateChanging: false,
                     error: null,
                 }));
             } catch (error) {
@@ -214,6 +242,7 @@ const BudgetDashboard: React.FC = () => {
                 setState(prev => ({
                     ...prev,
                     isFetchingBudget: false,
+                    isDateChanging: false,
                     error: 'Failed to load budget data'
                 }));
                 showAlert({
@@ -225,7 +254,7 @@ const BudgetDashboard: React.FC = () => {
         }
 
         fetchBudget();
-    }, [currentDate.year, currentDate.month, session?.user?.id, showAlert]);
+    }, [currentDate.year, currentDate.month, session?.user?.id, status, showAlert]);
 
     useEffect(() => {
         if (status === "unauthenticated") {
@@ -235,7 +264,8 @@ const BudgetDashboard: React.FC = () => {
 
     useEffect(() => {
         async function fetchCategories() {
-            if (!session?.user) return;
+            // Don't fetch if session is still loading or user not available
+            if (status === "loading" || !session?.user) return;
             
             setState(prev => ({ ...prev, isCategoriesLoading: true, error: null }));
             try {
@@ -269,7 +299,7 @@ const BudgetDashboard: React.FC = () => {
         }
 
         fetchCategories();
-    }, [session?.user, showAlert]);
+    }, [session?.user, status, showAlert]);
 
     const handleIncomeChange = useCallback(() => {
         setState(prev => ({
@@ -280,6 +310,15 @@ const BudgetDashboard: React.FC = () => {
             }), {})
         }));
     }, []);
+
+    // Handle session loading state
+    if (status === "loading") {
+        return (
+            <div className="mx-auto max-w-7xl px-4 w-full flex flex-col">
+                <Spinner size="lg" className="min-h-[300px]" text="Loading session..." />
+            </div>
+        );
+    }
 
     if (!session) return null;
 
@@ -297,8 +336,8 @@ const BudgetDashboard: React.FC = () => {
         );
     }
 
-    // Show loading state for initial load
-    if (state.isCategoriesLoading || (state.isFetchingBudget && !state.budgetCode)) {
+    // Show loading state for initial load or date changes
+    if (state.isCategoriesLoading || state.isDateChanging || (state.isFetchingBudget && !state.budgetCode)) {
         return (
             <div className="mx-auto max-w-7xl px-4 w-full flex flex-col">
                 <div className="w-full md:inline-flex md:justify-between mb-6">
@@ -308,7 +347,11 @@ const BudgetDashboard: React.FC = () => {
                         onChangeAction={handleMonthYearChange}
                     />
                 </div>
-                <Spinner size="lg" className="min-h-[300px]" />
+                <Spinner size="lg" className="min-h-[300px]" text={
+                    state.isDateChanging ? "Loading budget data..." : 
+                    state.isCategoriesLoading ? "Loading categories..." : 
+                    "Loading..."
+                } />
             </div>
         );
     }

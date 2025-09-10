@@ -10,11 +10,16 @@ import { useVault } from "@/contexts/VaultContext";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Doughnut } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import type { TooltipItem } from 'chart.js';
+
+// Register Chart.js components
+ChartJS.register(ArcElement, Tooltip, Legend);
 import { Transaction as TransactionInterface } from "@/store/transactionsSlice";
 import Transaction from "@/components/transaction/transaction";
 import {useTheme} from "next-themes";
 import { useRouter } from "next/navigation";
+import Spinner from "@/components/ui/spinner";
 
 interface Vault {
     image: string;
@@ -262,9 +267,7 @@ export default function ManageVault() {
                     </>
                 ) : (
                     <Card className="p-6">
-                        <div className="flex items-center justify-center h-32">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-gray-100" />
-                        </div>
+                        <Spinner text="Loading vault details..." size="md" className="h-32" />
                     </Card>
                 )}
 
