@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/SQL/data/data.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/SQL/debug/accountData.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/SQL/extensions/pgcrypto.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/SQL/functions/createBudget.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/SQL/functions/createVault.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/SQL/functions/getCategoryData.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/SQL/functions/getVault.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/SQL/functions/user/createsettings.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/SQL/tables/allocation.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/SQL/tables/buget.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/SQL/tables/categories.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/SQL/tables/income.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/SQL/tables/notes/budget_notes.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/SQL/tables/notes/transaction_notes.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/SQL/tables/notes/vault_notes.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/SQL/tables/transactions.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/SQL/tables/user/user.settings.sql" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/SQL/tables/vaults.sql" dialect="PostgreSQL" />
+  </component>
+</project>

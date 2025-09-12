@@ -1,0 +1,34 @@
+TRUNCATE categories;
+INSERT INTO categories (referencecode, type, weight) VALUES
+('CAT2025022222030415', 'Needs', 2),
+('CAT20250222220304D1', 'Wants', 3),
+('CAT202502222203044D', 'Savings', 1);
+
+INSERT INTO budgets (referencecode, user_id, year, month, created_at)
+VALUES
+    ('BUD202502190210XY', 1000000000, 2025, 2, NOW());
+
+
+TRUNCATE transactions;
+INSERT INTO transactions (referencecode, user_id, budget_code, category_code, description, amount, transaction_date, note)
+VALUES
+    -- 🔹 Needs Transactions
+    ('TRA202502190210A1', 1000000000, 'BUD202502190210XY', 'CAT2025022222030415', 'February Rent', 1200.00, '2025-02-01', 'Monthly rent payment'),
+    ('TRA202502190211B2', 1000000000, 'BUD202502190210XY', 'CAT2025022222030415', 'Grocery Shopping', 250.00, '2025-02-03', 'Walmart groceries'),
+    ('TRA202502190212C3', 1000000000, 'BUD202502190210XY', 'CAT2025022222030415', 'Electricity Bill', 150.00, '2025-02-05', 'February utility bill'),
+
+    -- 🔹 Wants Transactions
+    ('TRA202502190213D4', 1000000000, 'BUD202502190210XY', 'CAT20250222220304D1', 'Netflix Subscription', 15.99, '2025-02-07', 'Netflix monthly payment'),
+    ('TRA202502190214E5', 1000000000, 'BUD202502190210XY', 'CAT20250222220304D1', 'Clothes Shopping', 89.50, '2025-02-08', 'Bought new jeans'),
+    ('TRA202502190215F6', 1000000000, 'BUD202502190210XY', 'CAT20250222220304D1', 'Concert Tickets', 120.00, '2025-02-09', 'Drake concert ticket'),
+
+    -- 🔹 Savings Transactions
+    ('TRA202502190216G7', 1000000000, 'BUD202502190210XY', 'CAT202502222203044D', 'Savings Deposit', 500.00, '2025-02-10', 'Added to emergency fund'),
+    ('TRA202502190217H8', 1000000000, 'BUD202502190210XY', 'CAT202502222203044D', 'Stock Investment', 200.00, '2025-02-11', 'Bought Tesla stocks'),
+    ('TRA202502190218I9', 1000000000, 'BUD202502190210XY', 'CAT202502222203044D', 'Retirement Contribution', 300.00, '2025-02-12', '401(k) contribution');
+
+INSERT INTO vaults (user_id, name, description, target, image, notes)
+VALUES
+    (1000000003, 'House', 'Savings for container home.', 200000, 'https://images.squarespace-cdn.com/content/v1/61dc9316aabec173be60056d/3cd37570-4cc8-4d07-b8db-3eb6db6bac48/TPB+Spring-16.jpg', 'Started collecting in 2020'),
+    (1000000003, 'BMW S1000 RR', 'Gonna Get it.', 25000, 'https://mcn-images.bauersecure.com/wp-images/4705/900x0/2023_bmw_s1000rr_9.jpg', 'Starting collecting.'),
+    (1000000003, 'Default', '', 0, '', '');

@@ -1,0 +1,221 @@
+import { useEffect, useState } from "react";
+import { getCategoryData } from "@/actions/getCategoryData";
+import { Doughnut } from "react-chartjs-2";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
+import { useTheme } from "next-themes";
+
+ChartJS.register(ArcElement, Tooltip, Legend);
+
+type CategoryData = {
+    category_code: string;
+    category_type: string;
+    allocated_percentage: number;
+    income: number;
+    max_spend: number;
+    spent_amount: number;
+}
+
+export default function CategoryTrackerComponent({
+    category,
+    userId,
+    year,
+    month,
+    reload,
+}: {
+    category: string;
+    userId: string;
+    year: number;
+    month: number;
+    reload?: boolean;
+}) {
+    const { theme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+    const [data, setData] = useState<CategoryData | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [initialLoading, setInitialLoading] = useState(true);
+    const [percentSpent, setPercentSpent] = useState(0);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    useEffect(() => {
+        async function fetchData() {
+            if (initialLoading) {
+                setLoading(true);
+            }
+
+            const result: CategoryData | null = await getCategoryData(
+                category,
+                userId,
+                year,
+                month
+            );
+            setData(result);
+            if (result) {
+                const newPercent =
+                    result.max_spend > 0
+                        ? (result.spent_amount / result.max_spend) * 100
+                        : 0;
+                setPercentSpent(newPercent);
+            }
+            if (initialLoading) {
+                setLoading(false);
+                setInitialLoading(false);
+            }
+        }
+        fetchData().then();
+
+    }, [category, userId, year, month, reload, initialLoading]);
+
+    if (initialLoading && loading) {
+        return (
+            <div className="p-2 w-full">
+                <div className="p-3 w-full md:w-full rounded-xl shadow-md border flex items-center text-xl justify-between ">
+                    {/* Desktop view skeleton */}
+                    <div className="items-center justify-center hidden sm:inline-flex">
+                        <div className="w-[3.3rem] h-[3.3rem] flex items-center justify-center">
+                            <Skeleton className="w-full h-full rounded-full" />
+                        </div>
+                        <div className="flex flex-col px-3">
+                            <Skeleton className="h-6 w-24 mb-1" />
+                            <Skeleton className="h-4 w-20" />
+                        </div>
+                    </div>
+
+                    {/* Mobile view skeleton */}
+                    <div className="flex flex-col w-full justify-center sm:hidden">
+                        <div className="flex items-center justify-start">
+                            <Skeleton className="h-5 w-24" />
+                        </div>
+                        <div className="w-full flex flex-col text-xs items-center mt-2">
+                            <Skeleton className="h-2 w-full mb-1" />
+                            <Skeleton className="h-4 w-8 self-end" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (!data) return <div>No data found.</div>;
+
+    const chartData = {
+        datasets: [
+            {
+                data: [
+                    data.spent_amount,
+                    Math.max(data.max_spend - data.spent_amount, 0),
+                ],
+                backgroundColor: ["#ef4444", "#22c55e"],
+                hoverBackgroundColor: ["#dc2626", "#16a34a"],
+                borderWidth: 0,
+            },
+        ],
+    };
+
+    const chartOptions = {
+        responsive: true,
+        plugins: {
+            legend: { display: false },
+        },
+        cutout: "75%",
+    };
+
+    // Get original dark mode colors
+    const getBackgroundColor = (categoryCode: string) => {
+        if (!mounted) return "#FFFFFF"; // Default for SSR
+
+        switch (categoryCode) {
+            case "CAT2025022222030415": // NEEDS
+                return theme === "dark" ? "#243642" : "rgb(219, 234, 254)";
+            case "CAT20250222220304D1": // WANTS
+                return theme === "dark" ? "#387478" : "rgb(254, 249, 195)";
+            case "CAT202502222203044D": // SAVINGS
+                return theme === "dark" ? "#629584" : "rgb(220, 252, 231)";
+            default:
+                return theme === "dark" ? "#374151" : "#FFFFFF";
+        }
+    };
+
+    if (!mounted) {
+        // Return skeleton during hydration
+        return (
+            <div className="p-2 w-full">
+                <div className="p-3 w-full md:w-full rounded-xl shadow-md border flex items-center text-xl justify-between bg-white dark:bg-gray-800">
+                    <div className="items-center justify-center hidden sm:inline-flex">
+                        <div className="w-[3.3rem] h-[3.3rem] flex items-center justify-center">
+                            <Skeleton className="w-full h-full rounded-full" />
+                        </div>
+                        <div className="flex flex-col px-3">
+                            <Skeleton className="h-6 w-24 mb-1" />
+                            <Skeleton className="h-4 w-20" />
+                        </div>
+                    </div>
+                    <div className="flex flex-col w-full justify-center sm:hidden">
+                        <div className="flex items-center justify-start">
+                            <Skeleton className="h-5 w-24" />
+                        </div>
+                        <div className="w-full flex flex-col text-xs items-center mt-2">
+                            <Skeleton className="h-2 w-full mb-1" />
+                            <Skeleton className="h-4 w-8 self-end" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className={`p-2 w-full`}>
+            <div
+                style={{ backgroundColor: getBackgroundColor(category) }}
+                className="p-3 w-full md:w-full rounded-xl shadow-md border flex items-center text-xl justify-between"
+            >
+
+                <div className={`items-center justify-center hidden sm:inline-flex `}>
+                    <div className="w-[3.3rem] h-[3.3rem] flex items-center justify-center relative">
+                        <Doughnut data={chartData} options={chartOptions} />
+                        <div className="absolute inset-0 flex items-center justify-center text-gray-900 dark:text-gray-100 text-xs font-semibold">
+                            {percentSpent.toFixed(0)}%
+                        </div>
+                    </div>
+
+                    <div className={`flex flex-col px-3`}>
+                        <p className="text-gray-900 dark:text-gray-100 font-medium">{data.category_type}</p>
+                        <div className="text-sm mt-1 xs:block sm:hidden lg:block">
+                            <p className="text-gray-700 dark:text-gray-300">
+                                ${Number(data.spent_amount)} / ${Number(data.max_spend)}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex flex-col w-full justify-center sm:hidden">
+                    <div className="flex items-center justify-start">
+                        <span className="text-sm text-gray-900 dark:text-gray-100 font-medium">{data.category_type}</span>
+                    </div>
+
+                    <div className="w-full flex flex-col text-xs items-center">
+                        <Progress
+                            value={Number(percentSpent.toFixed(0))}
+                            className="w-full"
+                        />
+                        <span className="self-end text-gray-700 dark:text-gray-300">{percentSpent.toFixed(0)}%</span>
+                    </div>
+                </div>
+
+
+                <div className={`hidden md:flex`}>
+                    <div className={`w-full text-center`}>
+
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    );
+}
