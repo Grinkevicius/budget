@@ -3,6 +3,8 @@
 import { useEffect, useState, ChangeEvent } from "react";
 import { getSpendingAllocation, updateSpendingAllocation } from "@/actions/settings_allocations";
 import { useAlert } from '@/contexts/AlertContext';
+import { HelpCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Allocation {
     savings: number;
@@ -161,36 +163,93 @@ export default function SettingsAllocation({ userId }: SettingsAllocationProps) 
             </div>
 
             {/* Allocation inputs */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {[
-                    { 
-                        title: "Savings", 
-                        key: "savings", 
-                        description: "Emergency fund & investments",
-                        color: "emerald"
-                    },
-                    { 
-                        title: "Needs", 
-                        key: "needs", 
-                        description: "Rent, utilities, groceries",
-                        color: "blue"
-                    },
-                    { 
-                        title: "Wants", 
-                        key: "wants", 
-                        description: "Entertainment & hobbies",
-                        color: "amber"
-                    },
-                ].map((item) => (
-                    <div key={item.key} className="space-y-3">
-                        <div>
-                            <label className="block text-sm font-medium text-foreground mb-1">
-                                {item.title}
-                            </label>
-                            <p className="text-xs text-muted-foreground">
-                                {item.description}
-                            </p>
-                        </div>
+            <TooltipProvider>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {[
+                        { 
+                            title: "Savings", 
+                            key: "savings", 
+                            description: "Emergency fund & investments",
+                            color: "emerald",
+                            emoji: "💰",
+                            fullTitle: "Savings / Debt Repayment (Future)",
+                            examples: [
+                                "Emergency fund",
+                                "Retirement accounts (401k, IRA, etc.)",
+                                "Investments (stocks, ETFs, crypto if planned)",
+                                "Extra debt payments (above minimum)",
+                                "Future goals (house down payment, education, business, wedding)"
+                            ]
+                        },
+                        { 
+                            title: "Needs", 
+                            key: "needs", 
+                            description: "Rent, utilities, groceries",
+                            color: "blue",
+                            emoji: "🏠",
+                            fullTitle: "Needs (Essentials)",
+                            examples: [
+                                "Housing (rent, mortgage, taxes, insurance)",
+                                "Utilities (electricity, water, gas, internet, phone if essential)",
+                                "Groceries (basic food)",
+                                "Transportation (car payment, gas, maintenance, insurance, public transit)",
+                                "Healthcare (insurance, prescriptions, doctor visits)",
+                                "Childcare / tuition (if required)",
+                                "Minimum debt payments"
+                            ]
+                        },
+                        { 
+                            title: "Wants", 
+                            key: "wants", 
+                            description: "Entertainment & hobbies",
+                            color: "amber",
+                            emoji: "🎉",
+                            fullTitle: "Wants (Lifestyle)",
+                            examples: [
+                                "Dining out, take-out coffee",
+                                "Entertainment (movies, Netflix, games, concerts)",
+                                "Shopping (clothes beyond basics, gadgets, decor)",
+                                "Travel & vacations",
+                                "Hobbies (sports gear, books, collectibles)",
+                                "Subscriptions (streaming, gym, apps)",
+                                "Upgrades (premium plans, nicer car, luxury items)"
+                            ]
+                        },
+                    ].map((item) => (
+                        <div key={item.key} className="space-y-3">
+                            <div className="relative">
+                                <div className="flex items-center justify-between">
+                                    <label className="block text-sm font-medium text-foreground mb-1">
+                                        {item.title}
+                                    </label>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <button
+                                                type="button"
+                                                className="p-1 hover:bg-muted rounded-full transition-colors"
+                                                aria-label={`Information about ${item.key}`}
+                                            >
+                                                <HelpCircle className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                                            </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="max-w-xl p-4" side="top">
+                                            <div className="space-y-2">
+                                                <h4 className="font-semibold text-sm">{item.fullTitle}</h4>
+                                                <div className="space-y-1">
+                                                    {item.examples.map((example, index) => (
+                                                        <p key={index} className="text-sm  text-muted-foreground">
+                                                            • {example}
+                                                        </p>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </div>
+                                <p className="text-xs text-muted-foreground">
+                                    {item.description}
+                                </p>
+                            </div>
                         <div className="relative">
                             <input
                                 type="number"
@@ -213,7 +272,8 @@ export default function SettingsAllocation({ userId }: SettingsAllocationProps) 
                         </div>
                     </div>
                 ))}
-            </div>
+                </div>
+            </TooltipProvider>
 
             <div className="flex flex-col sm:flex-row gap-4 items-start">
                 <button

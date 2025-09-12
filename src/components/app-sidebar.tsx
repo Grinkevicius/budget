@@ -57,7 +57,13 @@ export function AppSidebar() {
     const { setSelectedVaultRef } = useVault();
     const router = useRouter();
     const {data: session} = useSession();
-    const { isMobile } = useSidebar();
+    const { isMobile, setOpenMobile } = useSidebar();
+
+    const handleLinkClick = () => {
+        if (isMobile) {
+            setOpenMobile(false);
+        }
+    };
 
     const [menuItems, setMenuItems] = useState<MenuItem[]>([
         {
@@ -133,7 +139,7 @@ export function AppSidebar() {
                                     <Collapsible key={item.title}>
                                         <SidebarMenuItem>
                                             <SidebarMenuButton asChild>
-                                                <Link href={item.url} prefetch={true}>
+                                                <Link href={item.url} prefetch={true} onClick={handleLinkClick}>
                                                     {item.icon && <item.icon />}
                                                     <span>{item.title}</span>
                                                 </Link>
@@ -156,6 +162,7 @@ export function AppSidebar() {
                                                                                 onClick={() => {
                                                                                     setSelectedVaultRef(subItem.referencecode);
                                                                                     router.push('/vaults/manage');
+                                                                                    handleLinkClick();
                                                                                 }}
                                                                             >
                                                                                 <span>{subItem.title}</span>
@@ -202,7 +209,7 @@ export function AppSidebar() {
                                 ) : (
                                     <SidebarMenuItem key={item.title}>
                                         <SidebarMenuButton asChild>
-                                            <Link href={item.url} prefetch={true}>
+                                            <Link href={item.url} prefetch={true} onClick={handleLinkClick}>
                                                 {item.icon && <item.icon />}
                                                 <span>{item.title}</span>
                                             </Link>

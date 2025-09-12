@@ -5,10 +5,9 @@ import { useSession } from "next-auth/react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sun, Moon, Palette, Database, Settings, ChevronRight, Mail, Shield, Bell, CreditCard } from "lucide-react";
+import { Sun, Moon, Palette, Database, Settings, ChevronRight, Mail, Shield, Bell } from "lucide-react";
 import Income from '@/components/income';
 import Allocations from '@/components/setAllocations';
 
@@ -38,22 +37,19 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between">
                     <div>
                         <div className="flex items-center gap-3 mb-2">
-                            <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl">
-                                <Settings className="h-5 w-5 text-white" />
+                            <div className="p-2 bg-gradient-to-br border rounded-xl">
+                                <Settings className="h-5 w-5 text-black dark:text-white " />
                             </div>
                             <h1 className="text-2xl font-semibold text-sidebar-foreground">
                                 Settings
                             </h1>
                         </div>
-                        <p className="text-sidebar-muted-foreground text-sm">
-                            Manage your account, preferences, and budget configuration
-                        </p>
                     </div>
                 </div>
             </div>
 
             {/* Content */}
-            <div className="mx-auto max-w-7xl px-4 py-6">
+            <div className="mx-auto max-w-7xl px-4">
                 {/* Settings Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -72,9 +68,9 @@ export default function SettingsPage() {
                                         <h3 className="font-semibold">{session.user.name}</h3>
                                         <p className="text-sm text-muted-foreground">{session.user.email}</p>
                                     </div>
-                                    <Badge variant="secondary" className="text-xs">
+                                    {/* <Badge variant="secondary" className="text-xs">
                                         Free
-                                    </Badge>
+                                    </Badge> */}
                                 </div>
                             </CardContent>
                         </Card>
